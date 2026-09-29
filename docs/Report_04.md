@@ -116,55 +116,56 @@ ATCsim.sln
 ```mermaid
 flowchart TD
     subgraph UI ["Presentation Layer (WPF / MVVM)"]
-        View["MainWindow / RadarCanvasView\n(WPF Tactical Display)"]
-        MainVM["MainViewModel & RadarViewModel"]
+        View["MainWindow / RadarCanvasView<br/>(WPF Tactical Display)"]
+        MainVM["MainViewModel and RadarViewModel"]
         InspectorVM["FlightInspectorViewModel"]
         LogVM["LogJournalViewModel"]
     end
 
-    subgraph Core ["Application & Domain Core (Simulation Engine)"]
-        Engine["SimulationEngine\n(Tick Loop & Time Scale)"]
-        WorldGen["WorldGenerator\n(Seed-based Procedural Gen)"]
-        Tracker["AircraftTracker\n(Kinematics & Wind Drift)"]
-        Safety["CollisionDetector\n(Separation Monitoring)"]
-        Weather["WeatherService\n(Storm & No-Fly Zones)"]
-        Comms["RadioCommunicationService\n(ICAO Readback & Log Engine)"]
+    subgraph Core ["Application and Domain Core (Simulation Engine)"]
+        Engine["SimulationEngine<br/>(Tick Loop and Time Scale)"]
+        WorldGen["WorldGenerator<br/>(Seed-based Procedural Gen)"]
+        Tracker["AircraftTracker<br/>(Kinematics and Wind Drift)"]
+        Safety["CollisionDetector<br/>(Separation Monitoring)"]
+        Weather["WeatherService<br/>(Storm and No-Fly Zones)"]
+        Comms["RadioCommunicationService<br/>(ICAO Readback and Log Engine)"]
     end
 
     subgraph Data ["Data Access Layer (Persistence)"]
         Repo["RepositoryManager"]
-        Database[("Database Storage\n(Airports, Models, Logs)")]
+        Database[("Database Storage<br/>Airports, Models, Logs")]
     end
 
     %% UI to ViewModel
-    View <-->|DataBinding / ICommand| MainVM
-    View <-->|DataBinding / Commands| InspectorVM
-    View <-->|DataBinding / Filter| LogVM
+    View ---|"DataBinding / ICommand"| MainVM
+    View ---|"DataBinding / Commands"| InspectorVM
+    View ---|"DataBinding / Filter"| LogVM
 
     %% ViewModels to Core Services
-    MainVM -->|Control Commands| Engine
-    MainVM -->|Request Seed Gen| WorldGen
-    InspectorVM -->|Course / Altitude Order| Tracker
-    InspectorVM -->|Broadcast Command| Comms
+    MainVM -->|"Control Commands"| Engine
+    MainVM -->|"Request Seed Gen"| WorldGen
+    InspectorVM -->|"Course / Altitude Order"| Tracker
+    InspectorVM -->|"Broadcast Command"| Comms
 
     %% Core interactions
-    Engine -->|Update Tick (dt)| Tracker
-    Engine -->|Trigger Analysis| Safety
-    Engine -->|Update Conditions| Weather
+    Engine -->|"Update Tick dt"| Tracker
+    Engine -->|"Trigger Analysis"| Safety
+    Engine -->|"Update Conditions"| Weather
 
-    WorldGen -.->|Spawn Initial Nodes| Tracker
-    Tracker -->|Coordinates & Heights| Safety
-    Weather -->|Wind Vector & Zone Hazards| Tracker
+    WorldGen -.->|"Spawn Initial Nodes"| Tracker
+    Tracker -->|"Coordinates and Heights"| Safety
+    Weather -->|"Wind Vector and Hazards"| Tracker
     
-    Safety -->|Conflict Event Alert| MainVM
-    Tracker -->|Telemetry Update Event| InspectorVM
-    Comms -->|New Message Event| LogVM
+    Safety -->|"Conflict Event Alert"| MainVM
+    Tracker -->|"Telemetry Update Event"| InspectorVM
+    Comms -->|"New Message Event"| LogVM
 
     %% Core to Data
-    Engine -.->|Log Sim State| Repo
-    Comms -.->|Persist Radio Logs| Repo
-    WorldGen -.->|Load/Save Presets| Repo
-    Repo <--> Database
+    Engine -.->|"Log Sim State"| Repo
+    Comms -.->|"Persist Radio Logs"| Repo
+    WorldGen -.->|"Load/Save Presets"| Repo
+    Repo -->|"Read / Write"| Database
+    Database -.->|"Query Results"| Repo
 ```
 
 ### Порядок виконання типового симуляційного циклу:
@@ -276,6 +277,12 @@ flowchart TD
 
 3. **Розділення симуляційного циклу та UI-потоку:**  
    Розрахунок фізики польоту, вітрового зносу та дистанцій між літаками винесено в окремий симуляційний рушій `SimulationEngine`. Інтерфейс підписується на події оновлення стану, завдяки чому складні розрахунки векторів і виявлення колізій не блокують головний потік інтерфейсу (UI Thread).
+
+4. **Виділення таблиці `aircraft_models` із каталогом технічних характеристик:**  
+   Відокремлення екземпляра судна (`aircrafts`) від його фізичної моделі (`aircraft_models`) забезпечує гнучке масштабування симулятора: додавання нових типів суден (від легкомоторних до важких трансконтинентальних лайнерів) відбувається без зміни коду алгоритмів руху, а швидкість набору висоти, витрата пального та тип відображуваної векторної іконки зчитуються з каталогу.
+
+5. **Швейцарський мінімалістичний дизайн консолі керування (Swiss Minimalist HUD):**  
+   Відмова від перевантажених темних тем із неоновими градієнтами на користь чіткого білого та світло-сірого фону з тонкими 1px межами, чистою типографікою шрифту **Montserrat** та чорними векторними піктограмами літаків знижує когнітивне навантаження на оператора і відповідає вимогам ергономіки сучасних диспетчерських пультів.
 
 ---
 
