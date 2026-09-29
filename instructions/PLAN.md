@@ -47,7 +47,7 @@ Any LLM or developer working on this codebase must consult this document before 
 - [x] Conduct competitive analysis against existing simulators (OpenATC, FlightGear, Radar Contact).
 - [x] Formulate functional requirements (FR 1 to FR 8) and non-functional requirements (NFR 1 to NFR 3).
 - [x] Author 5 key User Stories with testable Acceptance Criteria (AC).
-- [x] Establish MVP boundaries and tiered backlog (strictly excluding MoSCoW method).
+- [x] Establish MVP boundaries and tiered backlog.
 - [x] Document and finalize [docs/Report_task_2.md](docs/Report_task_2.md).
 
 ---
