@@ -1,6 +1,15 @@
-# ATCsim (Air Traffic Control Simulator)
+<p align="center">
+  <img src="docs/logo.png" alt="ATCsim Logo" width="480" />
+</p>
 
-Симулятор диспетчерського контролю та розподілу повітряного руху, розроблений у межах курсу «Програмна інженерія».
+<h1 align="center">ATCsim (Air Traffic Control Simulator)</h1>
+
+<p align="center">
+  <strong>Симулятор диспетчерського контролю та розподілу повітряного руху</strong><br>
+  <em>Розроблено у межах курсу «Програмна інженерія»</em>
+</p>
+
+---
 
 ## Про проєкт
 
