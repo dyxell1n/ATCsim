@@ -19,7 +19,7 @@ Any LLM or developer working on this codebase must consult this document before 
 | Stage | Description | Status | Reference / Artifacts | Owner |
 |:---:|---|:---:|---|---|
 | **1** | Project Initialization & Topic Selection | **[x] Completed** | [docs/Report_task_1.md](docs/Report_task_1.md) | All |
-| **2** | Requirements Engineering & Scope (No MoSCoW) | **[x] Completed** | [docs/Report_task_2.md](docs/Report_task_2.md) | All |
+| **2** | Requirements Engineering & Scope | **[x] Completed** | [docs/Report_task_2.md](docs/Report_task_2.md) | All |
 | **3** | Domain Modeling & UI Design | **[x] Completed** | [docs/Report_task_3.md](docs/Report_task_3.md) | O. Bezkorovainyi, M. Borkov |
 | **4** | Architecture & Relational Data Model | **[x] Completed** | [docs/Report_04.md](docs/Report_04.md) | O. Bezkorovainyi, M. Borkov |
 | **5** | Solution Decomposition & MVP Baseline | **[ ] In Progress** | Initial working prototype | O. Bezkorovainyi, M. Borkov |
