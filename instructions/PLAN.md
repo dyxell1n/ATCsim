@@ -22,7 +22,7 @@ Any LLM or developer working on this codebase must consult this document before 
 | **2** | Requirements Engineering & Scope | **[x] Completed** | [./docs/Report_02.md](./docs/Report_02.md) | All |
 | **3** | Domain Modeling & UI Design | **[x] Completed** | [./docs/Report_03.md](./docs/Report_03.md) | O. Bezkorovainyi, M. Borkov |
 | **4** | Architecture & Relational Data Model | **[x] Completed** | [./docs/Report_04.md](./docs/Report_04.md) | O. Bezkorovainyi, M. Borkov |
-| **5** | Solution Decomposition & MVP Baseline | **[ ] In Progress** | Initial working prototype | O. Bezkorovainyi, M. Borkov |
+| **5** | Solution Decomposition & MVP Baseline | **[x] Completed** | [./docs/Report_05.md](./docs/Report_05.md) | O. Bezkorovainyi, M. Borkov |
 | **6** | Iterative Feature Implementation | **[ ] Planned** | Feature branches & PRs | All |
 | **7** | Automated Testing & Quality Assurance | **[ ] Planned** | Unit & integration test suites | V. Ruban |
 | **8** | Continuous Integration (CI/CD) | **[ ] Planned** | GitHub Actions workflows | V. Ruban |
@@ -72,22 +72,22 @@ Any LLM or developer working on this codebase must consult this document before 
 
 ---
 
-### Stage 5: Solution Decomposition & MVP Baseline [IN PROGRESS]
+### Stage 5: Solution Decomposition & MVP Baseline [COMPLETED]
 *Objective: Build an end-to-end working baseline where UI, Core, and Data layers communicate.*
 
 - [x] Setup initial `ATCsim.sln` solution and WPF desktop project on .NET 10.
 - [x] Construct minimalist radar UI layout with Montserrat typography, status cards, and SVG icons.
-- [ ] Separate solution into dedicated class library assemblies:
-  - [ ] `ATCsim.Core` (.NET 10 class library) — domain entities, kinematics, world generator interface.
-  - [ ] `ATCsim.Data` (.NET 10 class library) — SQLite database context and repositories.
-  - [ ] `ATCsim.Tests` (xUnit test project).
-- [ ] Configure local SQLite persistence:
-  - [ ] Implement ADO.NET / lightweight ORM data layer.
-  - [ ] Automated schema initialization on initial startup based on the 9-entity ER diagram.
-- [ ] Minimal End-to-End Walkthrough:
-  - [ ] Load seed and airport list from SQLite.
-  - [ ] Initialize single aircraft track and render on Canvas via ViewModel data binding.
-- [ ] Verify zero build warnings and zero errors.
+- [x] Separate solution into dedicated class library assemblies:
+  - [x] `ATCsim.Core` (.NET 10 class library) — domain entities, kinematics, world generator interface.
+  - [x] `ATCsim.Data` (.NET 10 class library) — SQLite database context and repositories.
+  - [x] `ATCsim.Tests` (xUnit test project).
+- [x] Configure local SQLite persistence:
+  - [x] Implement ADO.NET / lightweight ORM data layer.
+  - [x] Automated schema initialization on initial startup based on the 9-entity ER diagram.
+- [x] Minimal End-to-End Walkthrough:
+  - [x] Load seed and airport list from SQLite.
+  - [x] Initialize single aircraft track and render on Canvas via ViewModel data binding.
+- [x] Verify zero build warnings and zero errors.
 
 ---
 

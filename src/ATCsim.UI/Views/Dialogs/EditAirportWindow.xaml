@@ -1,0 +1,102 @@
+<Window x:Class="ATCsim.UI.Views.Dialogs.EditAirportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Edit Aerodrome / Редагувати аеропорт" 
+        Height="490" Width="430"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#FFFFFF">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="EDIT AERODROME CHARACTERISTICS" FontFamily="Montserrat, Segoe UI" FontSize="14" FontWeight="Bold" Foreground="#212529"/>
+            <TextBlock Text="Зміна параметрів аеродрому, місткості та статусу смуг у SQLite" FontFamily="Segoe UI" FontSize="11" Foreground="#6C757D"/>
+        </StackPanel>
+
+        <!-- Form Fields -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- ICAO Code (Readonly indicator) & Name -->
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                        <TextBlock Text="ICAO CODE:" FontFamily="Montserrat, Segoe UI" FontSize="10" FontWeight="Bold" Foreground="#868E96" Margin="0,0,0,4"/>
+                        <TextBox x:Name="IcaoBox" IsReadOnly="True" Background="#F1F3F5" FontFamily="Montserrat, Consolas" FontSize="12" FontWeight="Bold" Padding="6,4" BorderBrush="#CED4DA"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                        <TextBlock Text="AIRPORT NAME / НАЗВА:" FontFamily="Montserrat, Segoe UI" FontSize="10" FontWeight="Bold" Foreground="#495057" Margin="0,0,0,4"/>
+                        <TextBox x:Name="NameBox" FontFamily="Montserrat, Segoe UI" FontSize="12" Padding="6,4" BorderBrush="#CED4DA"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Coordinates & Capacity -->
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                        <TextBlock Text="COORD X:" FontFamily="Montserrat, Segoe UI" FontSize="10" FontWeight="Bold" Foreground="#495057" Margin="0,0,0,4"/>
+                        <TextBox x:Name="CoordXBox" FontFamily="Consolas" FontSize="12" Padding="6,4" BorderBrush="#CED4DA"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="4,0,4,0">
+                        <TextBlock Text="COORD Y:" FontFamily="Montserrat, Segoe UI" FontSize="10" FontWeight="Bold" Foreground="#495057" Margin="0,0,0,4"/>
+                        <TextBox x:Name="CoordYBox" FontFamily="Consolas" FontSize="12" Padding="6,4" BorderBrush="#CED4DA"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Margin="4,0,0,0">
+                        <TextBlock Text="CAPACITY:" FontFamily="Montserrat, Segoe UI" FontSize="10" FontWeight="Bold" Foreground="#495057" Margin="0,0,0,4"/>
+                        <TextBox x:Name="CapacityBox" FontFamily="Consolas" FontSize="12" Padding="6,4" BorderBrush="#CED4DA"/>
+                    </StackPanel>
+                </Grid>
+
+                <Separator Margin="0,6,0,10" Background="#E9ECEF"/>
+                <TextBlock Text="RUNWAY PROPERTIES / ХАРАКТЕРИСТИКИ ЗПС" FontFamily="Montserrat, Segoe UI" FontSize="10" FontWeight="Bold" Foreground="#212529" Margin="0,0,0,8"/>
+
+                <!-- Runway Details -->
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                        <TextBlock Text="DESIGNATOR:" FontFamily="Montserrat, Segoe UI" FontSize="10" FontWeight="Bold" Foreground="#495057" Margin="0,0,0,4"/>
+                        <TextBox x:Name="RwyDesignatorBox" FontFamily="Consolas" FontSize="12" Padding="6,4" BorderBrush="#CED4DA"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="4,0,4,0">
+                        <TextBlock Text="ANGLE (°):" FontFamily="Montserrat, Segoe UI" FontSize="10" FontWeight="Bold" Foreground="#495057" Margin="0,0,0,4"/>
+                        <TextBox x:Name="RwyAngleBox" FontFamily="Consolas" FontSize="12" Padding="6,4" BorderBrush="#CED4DA"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Margin="4,0,0,0">
+                        <TextBlock Text="LENGTH (M):" FontFamily="Montserrat, Segoe UI" FontSize="10" FontWeight="Bold" Foreground="#495057" Margin="0,0,0,4"/>
+                        <TextBox x:Name="RwyLengthBox" FontFamily="Consolas" FontSize="12" Padding="6,4" BorderBrush="#CED4DA"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Status / Availability Checkbox -->
+                <CheckBox x:Name="RwyAvailableCheck" Content="Runway Available for Takeoff &amp; Landing (Відкрита)" 
+                          IsChecked="True" FontFamily="Segoe UI" FontSize="11" Margin="0,4,0,0"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Скасувати" Click="OnCancelClick" 
+                    Background="#F1F3F5" Foreground="#495057" BorderBrush="#CED4DA" BorderThickness="1"
+                    FontFamily="Montserrat, Segoe UI" FontWeight="SemiBold" FontSize="11" Padding="14,6" Margin="0,0,8,0" Cursor="Hand"/>
+            <Button Content="Зберегти зміни" Click="OnSaveClick" 
+                    Background="#2B8A3E" Foreground="#FFFFFF" BorderThickness="0"
+                    FontFamily="Montserrat, Segoe UI" FontWeight="Bold" FontSize="11" Padding="16,6" Cursor="Hand"/>
+        </StackPanel>
+    </Grid>
+</Window>
