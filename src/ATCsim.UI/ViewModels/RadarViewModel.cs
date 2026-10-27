@@ -120,6 +120,28 @@ public class AirportMarkerViewModel : ViewModelBase
     }
 }
 
+public class TerrainPatchViewModel
+{
+    public PointCollection Points { get; }
+    public Brush Fill { get; }
+    public TerrainPatchViewModel(TerrainPatch patch)
+    {
+        Points = new PointCollection(patch.Points.Select(p => new System.Windows.Point(p.X, p.Y)));
+        Points.Freeze();
+        Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(
+            patch.Kind == "LAND" ? "#284E38" : "#37684B"));
+        Fill.Freeze();
+    }
+}
+
+public class WeatherZoneViewModel(WeatherZone zone)
+{
+    public double X => (double)(zone.CenterX - zone.Radius);
+    public double Y => (double)(zone.CenterY - zone.Radius);
+    public double Diameter => (double)(zone.Radius * 2);
+    public string Name => zone.Name;
+    public string Description => $"{zone.ZoneType} (FL{zone.MinAltitude / 100:0} - FL{zone.MaxAltitude / 100:0})";
+}
 public class RadarViewModel : ViewModelBase
 {
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, Brush> BrushCache = new();
@@ -192,6 +214,8 @@ public class RadarViewModel : ViewModelBase
     public ObservableCollection<AircraftTrackViewModel> Tracks { get; } = [];
     public ObservableCollection<AirportMarkerViewModel> Airports { get; } = [];
     public ObservableCollection<Waypoint> Waypoints { get; } = [];
+    public ObservableCollection<TerrainPatchViewModel> Terrain { get; } = [];
+    public ObservableCollection<WeatherZoneViewModel> WeatherZones { get; } = [];
     public ObservableCollection<TrailSegmentViewModel> AllTrailSegments { get; } = [];
 
     public AircraftTrackViewModel? SelectedTrack
@@ -257,19 +281,15 @@ public class RadarViewModel : ViewModelBase
         Tracks.Clear();
         Airports.Clear();
         Waypoints.Clear();
+        Terrain.Clear();
+        WeatherZones.Clear();
+        foreach (var patch in sector.Terrain) Terrain.Add(new TerrainPatchViewModel(patch));
+        foreach (var zone in sector.WeatherZones.Where(z => z.IsActive)) WeatherZones.Add(new WeatherZoneViewModel(zone));
         AllTrailSegments.Clear();
 
         foreach (var apt in sector.Airports)
         {
-            string sub = apt.IcaoCode switch
-            {
-                "UKLL" => "Elevation: 1069ft | Capacity: 8/15",
-                "UKBB" => "Elevation: 427ft | RWY 36R Available",
-                "UKKK" => "Elevation: 587ft | RWY 08 Available",
-                "UKOO" => "Elevation: 172ft | RWY 16 Available",
-                "UKHH" => "Elevation: 508ft | RWY 07 Available",
-                _ => $"Capacity: {apt.MaxCapacity}"
-            };
+            string sub = $"Capacity: {apt.MaxCapacity} | RWY {string.Join(", ", apt.Runways.Select(r => r.Designator))}";
 
             Airports.Add(new AirportMarkerViewModel
             {
@@ -373,3 +393,4 @@ public class RadarViewModel : ViewModelBase
         }
     }
 }
+

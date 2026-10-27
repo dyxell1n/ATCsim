@@ -37,8 +37,9 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <!-- Left Branding and Menus -->
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.ColumnSpan="3" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="File" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#212529" Margin="0,0,16,0" Cursor="Hand"/>
                     <TextBlock Text="View" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#212529" Margin="0,0,16,0" Cursor="Hand"/>
                     <TextBlock Text="Add" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#212529" Margin="0,0,16,0" Cursor="Hand"/>
@@ -48,19 +49,20 @@
                 </StackPanel>
 
                 <!-- Right Simulator Controls -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <WrapPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,8,0,0">
                     <!-- Seed Input -->
                     <Border Background="#F8F9FA" BorderBrush="#CED4DA" BorderThickness="1" CornerRadius="0" Padding="6,2" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="SEED:" FontFamily="Montserrat, Segoe UI" FontSize="11" FontWeight="Bold" Foreground="#495057" VerticalAlignment="Center" Margin="0,0,6,0"/>
                             <TextBox Text="{Binding SeedInput, UpdateSourceTrigger=PropertyChanged}" 
                                      FontFamily="Consolas, Segoe UI" FontSize="11" 
-                                     Width="80" BorderThickness="0" Background="Transparent" VerticalAlignment="Center"/>
+                                     Width="145" BorderThickness="0" Background="Transparent" VerticalAlignment="Center"/>
                             <Button Content="↻" Command="{Binding GenerateWorldCommand}" 
-                                    FontWeight="Bold" BorderThickness="0" Background="Transparent" Foreground="#495057" Cursor="Hand" Margin="4,0,0,0" ToolTip="Regenerate sector and save to SQLite"/>
+                                    FontWeight="Bold" BorderThickness="0" Background="Transparent" Foreground="#495057" Cursor="Hand" Margin="4,0,0,0" ToolTip="Generate the same map from this seed"/>
                         </StackPanel>
                     </Border>
 
+                    <Button Content="Random seed" Command="{Binding RandomSeedCommand}" Padding="6,5" Margin="0,0,6,0" ToolTip="Create a new seed and generate a map"/>
                     <!-- Run Button -->
                     <Button Command="{Binding RunCommand}" 
                             Background="#2B8A3E" Foreground="#FFFFFF" 
@@ -121,7 +123,7 @@
                             Cursor="Hand" ToolTip="Зберегти прогрес у SQLite та завершити програму">
                         <TextBlock Text="✕" FontFamily="Montserrat, Segoe UI" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
-                </StackPanel>
+                </WrapPanel>
             </Grid>
         </Border>
 
@@ -364,7 +366,7 @@
                                 <Button Command="{Binding ClimbDescendCommand}" Content="Climb / Descend" 
                                         Background="#FFFFFF" Foreground="#212529" BorderBrush="#CED4DA" BorderThickness="1" 
                                         FontFamily="Montserrat, Segoe UI" FontWeight="SemiBold" FontSize="11" Padding="0,7" Margin="4,0,0,4" Cursor="Hand"/>
-                                <Button Command="{Binding DirectToUkbbCommand}" Content="Direct to UKBB" 
+                                <Button Command="{Binding DirectToUkbbCommand}" Content="Direct to destination" 
                                         Background="#FFFFFF" Foreground="#212529" BorderBrush="#CED4DA" BorderThickness="1" 
                                         FontFamily="Montserrat, Segoe UI" FontWeight="SemiBold" FontSize="11" Padding="0,7" Margin="0,4,4,0" Cursor="Hand"/>
                                 <Button Command="{Binding HoldingPatternCommand}" Content="Holding Pattern" 
@@ -451,3 +453,5 @@
         </Border>
     </Grid>
 </Window>
+
+

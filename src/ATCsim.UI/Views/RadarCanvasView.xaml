@@ -25,19 +25,15 @@
                 </TransformGroup>
             </Canvas.RenderTransform>
 
-            <!-- 1. Stylized Tactical Airspace Landmass Contours -->
-            <!-- Base Water Surface -->
-            <Polygon Points="0,0 1000,0 1000,700 0,700" Fill="#1E3A52" />
-            
-            <!-- Main Airspace Landmass -->
-            <Polygon Points="0,0 1000,0 1000,520 860,540 680,510 570,550 510,640 460,700 0,700" Fill="#284E38" />
-            
-            <!-- Elevation and Sector Contours -->
-            <Polygon Points="60,320 240,280 380,310 460,400 320,460 140,480" Fill="#37684B" Opacity="0.5" />
-            <Polygon Points="420,220 720,180 840,280 780,380 540,360 460,280" Fill="#37684B" Opacity="0.4" />
-            <Polygon Points="380,480 620,440 680,540 540,620 440,580" Fill="#457858" Opacity="0.35" />
-
-            <!-- 2. Clean Solid Radar Range Rings (Centered at Boryspil FIR: 580, 260) -->
+            <!-- Seed-generated coastline and terrain -->
+            <Rectangle Width="1000" Height="700" Fill="#1E3A52" IsHitTestVisible="False"/>
+            <ItemsControl ItemsSource="{Binding Terrain}" IsHitTestVisible="False" Width="1000" Height="700">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><Canvas/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate><DataTemplate>
+                    <Polygon Points="{Binding Points}" Fill="{Binding Fill}"/>
+                </DataTemplate></ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <!-- 2. Clean Solid Radar Range Rings (Fixed radar reference: 580, 260) -->
             <!-- 20 NM Ring (radius 100) -->
             <Ellipse Canvas.Left="480" Canvas.Top="160" Width="200" Height="200"
                      Stroke="#E9ECEF" StrokeThickness="1" Opacity="0.35"/>
@@ -70,41 +66,38 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <!-- 4. Restricted Weather Zone (Solid Red Boundary with Radial Glow) -->
-            <Ellipse Canvas.Left="405" Canvas.Top="145" Width="110" Height="110"
-                     Stroke="#C92A2A" StrokeThickness="1.5">
-                <Ellipse.Fill>
-                    <RadialGradientBrush>
-                        <GradientStop Color="#90C92A2A" Offset="0.0"/>
-                        <GradientStop Color="#20C92A2A" Offset="0.8"/>
-                        <GradientStop Color="#00C92A2A" Offset="1.0"/>
-                    </RadialGradientBrush>
-                </Ellipse.Fill>
-            </Ellipse>
-            <Border Canvas.Left="425" Canvas.Top="180" Background="#FFFFFF" BorderBrush="#C92A2A" BorderThickness="1" Padding="6,3" CornerRadius="0">
-                <StackPanel>
-                    <TextBlock Text="RESTRICTED ZONE #04" FontFamily="Montserrat, Segoe UI" FontSize="9" FontWeight="Bold" Foreground="#C92A2A"/>
-                    <TextBlock Text="Storm Hazard (FL0 - FL220)" FontFamily="Segoe UI" FontSize="8" Foreground="#495057"/>
-                </StackPanel>
-            </Border>
+            <!-- Seed-generated weather hazards -->
+            <ItemsControl ItemsSource="{Binding WeatherZones}" Width="1000" Height="700" IsHitTestVisible="False">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><Canvas/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                <ItemsControl.ItemContainerStyle><Style TargetType="ContentPresenter">
+                    <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                    <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                </Style></ItemsControl.ItemContainerStyle>
+                <ItemsControl.ItemTemplate><DataTemplate>
+                    <Grid Width="{Binding Diameter}" Height="{Binding Diameter}">
+                        <Ellipse Stroke="#C92A2A" StrokeThickness="1.5" Fill="#30C92A2A"/>
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Background="#FFFFFF">
+                            <TextBlock Text="{Binding Name}" FontSize="9" Foreground="#C92A2A" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding Description}" FontSize="8" Foreground="#495057"/>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate></ItemsControl.ItemTemplate>
+            </ItemsControl>
 
-            <!-- 5. Waypoints (Solid Markers with Text) -->
-            <!-- TMR -->
-            <Ellipse Canvas.Left="257" Canvas.Top="377" Width="6" Height="6" Fill="#FF8787"/>
-            <TextBlock Canvas.Left="266" Canvas.Top="373" Text="TMR" FontFamily="Montserrat" FontSize="9" FontWeight="Bold" Foreground="#FFFFFF"/>
-            <!-- SLV -->
-            <Ellipse Canvas.Left="377" Canvas.Top="327" Width="6" Height="6" Fill="#FF8787"/>
-            <TextBlock Canvas.Left="386" Canvas.Top="323" Text="SLV" FontFamily="Montserrat" FontSize="9" FontWeight="Bold" Foreground="#FFFFFF"/>
-            <!-- KVR -->
-            <Ellipse Canvas.Left="477" Canvas.Top="287" Width="6" Height="6" Fill="#FF8787"/>
-            <TextBlock Canvas.Left="486" Canvas.Top="283" Text="KVR" FontFamily="Montserrat" FontSize="9" FontWeight="Bold" Foreground="#FFFFFF"/>
-            <!-- BODRU -->
-            <Ellipse Canvas.Left="527" Canvas.Top="447" Width="6" Height="6" Fill="#74C0FC"/>
-            <TextBlock Canvas.Left="536" Canvas.Top="443" Text="BODRU" FontFamily="Montserrat" FontSize="9" FontWeight="Bold" Foreground="#FFFFFF"/>
-            <!-- PEKIT -->
-            <Ellipse Canvas.Left="707" Canvas.Top="262" Width="6" Height="6" Fill="#FFD43B"/>
-            <TextBlock Canvas.Left="716" Canvas.Top="258" Text="PEKIT" FontFamily="Montserrat" FontSize="9" FontWeight="Bold" Foreground="#FFFFFF"/>
-
+            <!-- Seed-generated navigation waypoints -->
+            <ItemsControl ItemsSource="{Binding Waypoints}" Width="1000" Height="700" IsHitTestVisible="False">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><Canvas/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                <ItemsControl.ItemContainerStyle><Style TargetType="ContentPresenter">
+                    <Setter Property="Canvas.Left" Value="{Binding CoordX}"/>
+                    <Setter Property="Canvas.Top" Value="{Binding CoordY}"/>
+                </Style></ItemsControl.ItemContainerStyle>
+                <ItemsControl.ItemTemplate><DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="6" Height="6" Fill="#FF8787"/>
+                        <TextBlock Text="{Binding Name}" Margin="4,0,0,0" FontSize="9" FontWeight="Bold" Foreground="#FFFFFF"/>
+                    </StackPanel>
+                </DataTemplate></ItemsControl.ItemTemplate>
+            </ItemsControl>
             <!-- 6. Dynamic Interactive Airports (Clickable Beacons & Cards) -->
             <ItemsControl ItemsSource="{Binding Airports}">
                 <ItemsControl.ItemsPanel>
@@ -315,3 +308,4 @@
         </Border>
     </Grid>
 </UserControl>
+
