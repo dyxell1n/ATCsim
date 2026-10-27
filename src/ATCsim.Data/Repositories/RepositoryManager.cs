@@ -47,7 +47,7 @@ public class RepositoryManager
                 ON CONFLICT(id) DO UPDATE SET
                     coord_x = excluded.coord_x,
                     coord_y = excluded.coord_y,
-                    name = excluded.name;
+                    name = excluded.name, max_capacity = excluded.max_capacity;
             ";
             cmd.Parameters.AddWithValue("@id", apt.Id);
             cmd.Parameters.AddWithValue("@icao", apt.IcaoCode);
@@ -67,7 +67,7 @@ public class RepositoryManager
                     INSERT INTO runways (id, airport_id, designator, angle, length, is_available)
                     VALUES (@id, @aid, @des, @ang, @len, @avail)
                     ON CONFLICT(id) DO UPDATE SET
-                        angle = excluded.angle,
+                        airport_id = excluded.airport_id, designator = excluded.designator, length = excluded.length, angle = excluded.angle,
                         is_available = excluded.is_available;
                 ";
                 rwyCmd.Parameters.AddWithValue("@id", rwy.Id);
@@ -91,7 +91,7 @@ public class RepositoryManager
                     INSERT INTO aircraft_models (id, model_name, category, cruise_speed, max_altitude, fuel_capacity, icon_type)
                     VALUES (@id, @name, @cat, @spd, @alt, @fuel, @icon)
                     ON CONFLICT(id) DO UPDATE SET
-                        model_name = excluded.model_name;
+                        model_name = excluded.model_name, category = excluded.category, cruise_speed = excluded.cruise_speed, max_altitude = excluded.max_altitude, fuel_capacity = excluded.fuel_capacity, icon_type = excluded.icon_type;
                 ";
                 modelCmd.Parameters.AddWithValue("@id", ac.Model.Id);
                 modelCmd.Parameters.AddWithValue("@name", ac.Model.ModelName);
@@ -135,7 +135,7 @@ public class RepositoryManager
                 INSERT INTO weather_zones (id, name, zone_type, center_x, center_y, radius, min_altitude, max_altitude, is_active)
                 VALUES (@id, @name, @zt, @cx, @cy, @rad, @minalt, @maxalt, @act)
                 ON CONFLICT(id) DO UPDATE SET
-                    is_active = excluded.is_active;
+                    name = excluded.name, zone_type = excluded.zone_type, center_x = excluded.center_x, center_y = excluded.center_y, radius = excluded.radius, min_altitude = excluded.min_altitude, max_altitude = excluded.max_altitude, is_active = excluded.is_active;
             ";
             zoneCmd.Parameters.AddWithValue("@id", zone.Id);
             zoneCmd.Parameters.AddWithValue("@name", zone.Name);
@@ -348,3 +348,5 @@ public class RepositoryManager
         return (seed, simTime, timeScale, list);
     }
 }
+
+

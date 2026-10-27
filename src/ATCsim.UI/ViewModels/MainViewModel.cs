@@ -208,6 +208,7 @@ public class MainViewModel : ViewModelBase
     public ICommand PauseCommand { get; }
     public ICommand ToggleSpeedCommand { get; }
     public ICommand GenerateWorldCommand { get; }
+    public ICommand RandomSeedCommand { get; }
     public ICommand AddAircraftCommand { get; }
     public ICommand AddZoneCommand { get; }
     public ICommand AddAirportCommand { get; }
@@ -309,6 +310,12 @@ public class MainViewModel : ViewModelBase
         });
 
         GenerateWorldCommand = new RelayCommand(GenerateFromSeed);
+        RandomSeedCommand = new RelayCommand(() =>
+        {
+            SeedInput = System.Buffers.Binary.BinaryPrimitives.ReadInt64LittleEndian(
+                System.Security.Cryptography.RandomNumberGenerator.GetBytes(sizeof(long))).ToString();
+            GenerateFromSeed();
+        });
 
         AddAircraftCommand = new RelayCommand(ExecuteAddAircraft);
         AddZoneCommand = new RelayCommand(ExecuteAddZone);
@@ -389,6 +396,7 @@ public class MainViewModel : ViewModelBase
             var newZone = dlg.CreatedZone;
             newZone.Id = _engine.WeatherZones.Count + 1;
             _engine.AddWeatherZone(newZone);
+            Radar.WeatherZones.Add(new WeatherZoneViewModel(newZone));
             Logs.AddLog("• METEO", "RADAR CENTER", $"New weather restriction {newZone.Name} ({newZone.ZoneType}) activated.", isRadio: false);
             UpdateDatabaseStats();
         }
@@ -506,6 +514,7 @@ public class MainViewModel : ViewModelBase
             if (saved.HasValue && saved.Value.Aircraft.Count > 0)
             {
                 var (seed, simTime, timeScale, aircraftList) = saved.Value;
+                SeedInput = seed.ToString();
                 var airports = _repoManager.Airports.GetAll();
 
                 var savedSector = _worldGenerator.GenerateSector(seed);
@@ -542,7 +551,7 @@ public class MainViewModel : ViewModelBase
         UpdateDatabaseStats();
 
         // Load airports into Inspector for airport tab
-        Inspector.LoadAirports(_repoManager.Airports.GetAll());
+        Inspector.LoadAirports(_engine.Airports);
 
         if (sector.Aircraft.Count > 0)
         {
@@ -562,9 +571,12 @@ public class MainViewModel : ViewModelBase
     {
         if (!long.TryParse(SeedInput, out long seed))
         {
-            seed = DateTime.UtcNow.Ticks % 100000000;
-            SeedInput = seed.ToString();
+            MessageBox.Show("Введіть ціле число від -9223372036854775808 до 9223372036854775807.",
+                "Некоректний seed", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
         }
+        _engine.Pause();
+        IsRunning = false;
 
         var sector = _worldGenerator.GenerateSector(seed);
         _engine.LoadSector(sector);
@@ -574,13 +586,16 @@ public class MainViewModel : ViewModelBase
         _repoManager.SyncSectorToDatabase(sector);
         UpdateDatabaseStats();
 
-        Inspector.LoadAirports(_repoManager.Airports.GetAll());
+        Inspector.LoadAirports(_engine.Airports);
 
         if (sector.Aircraft.Count > 0)
         {
             Inspector.SetSelectedAircraft(sector.Aircraft[0]);
             UpdateFlightRouteBanner(sector.Aircraft[0]);
         }
+
+        _repoManager.SaveSessionProgress(seed, _engine.SimTime, _engine.TimeScale,
+            sector.Airports, sector.Aircraft, sector.WeatherZones);
 
         Logs.AddLog("• WORLD GEN", "SEED ENGINE", $"Procedural sector generated with seed {seed}. Saved to SQLite.", isRadio: false);
     }
@@ -615,3 +630,6 @@ public class MainViewModel : ViewModelBase
         });
     }
 }
+
+
+

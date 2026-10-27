@@ -117,6 +117,44 @@ public class DatabaseTests : IDisposable
         Assert.Equal("Renamed Aerodrome", found.Name);
     }
 
+    [Fact]
+    public void RegeneratingSector_UpdatesAirportRunwayAndWeatherGeometry()
+    {
+        var generator = new ATCsim.Core.WorldGeneration.WorldGenerator();
+        _repoManager.SyncSectorToDatabase(generator.GenerateSector(12345));
+        var expected = generator.GenerateSector(98765);
+        _repoManager.SyncSectorToDatabase(expected);
+        var actualAirports = _repoManager.Airports.GetAll();
+        foreach (var airport in expected.Airports)
+        {
+            var actual = Assert.Single(actualAirports, a => a.Id == airport.Id);
+            Assert.Equal(airport.CoordX, actual.CoordX);
+            Assert.Equal(airport.CoordY, actual.CoordY);
+            Assert.Equal(airport.MaxCapacity, actual.MaxCapacity);
+            Assert.Equal(airport.Runways.Count, actual.Runways.Count);
+            foreach (var runway in airport.Runways)
+            {
+                var stored = Assert.Single(actual.Runways, r => r.Id == runway.Id);
+                Assert.Equal(runway.Angle, stored.Angle);
+                Assert.Equal(runway.Designator, stored.Designator);
+                Assert.Equal(runway.Length, stored.Length);
+            }
+        }
+        using var connection = _repoManager.Context.CreateConnection();
+        foreach (var zone in expected.WeatherZones)
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT center_x, center_y, radius, max_altitude, zone_type FROM weather_zones WHERE id = @id";
+            command.Parameters.AddWithValue("@id", zone.Id);
+            using var reader = command.ExecuteReader();
+            Assert.True(reader.Read());
+            Assert.Equal((double)zone.CenterX, reader.GetDouble(0));
+            Assert.Equal((double)zone.CenterY, reader.GetDouble(1));
+            Assert.Equal((double)zone.Radius, reader.GetDouble(2));
+            Assert.Equal((double)zone.MaxAltitude!.Value, reader.GetDouble(3));
+            Assert.Equal(zone.ZoneType, reader.GetString(4));
+        }
+    }
     public void Dispose()
     {
         try
@@ -132,3 +170,4 @@ public class DatabaseTests : IDisposable
         }
     }
 }
+

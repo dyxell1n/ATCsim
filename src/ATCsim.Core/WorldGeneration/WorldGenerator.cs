@@ -1,253 +1,317 @@
 using ATCsim.Core.Entities;
+using ATCsim.Core.Kinematics;
 
 namespace ATCsim.Core.WorldGeneration;
 
-/// <summary>
-/// Baseline world sector generator.
-/// Generates realistic airspace topology (major airports, runways, waypoints, active flights, and weather hazards).
-/// Full procedural algorithm will be extended by M. Borkov in Stage 6.
-/// </summary>
 public class WorldGenerator : IWorldGenerator
 {
+    public const int MapWidth = 1000;
+    public const int MapHeight = 700;
+
     public WorldSector GenerateSector(long seed)
     {
-        int seedInt = (int)(seed ^ (seed >> 32));
-        var rng = new Random(seedInt);
+        var random = new SeedRandom(seed);
+        var sector = new WorldSector { Seed = seed };
 
-        // Small deterministic seed offsets for initial aircraft positions
-        double ac1XOffset = (rng.NextDouble() - 0.5) * 40.0;
-        double ac1YOffset = (rng.NextDouble() - 0.5) * 20.0;
-        double ac2XOffset = (rng.NextDouble() - 0.5) * 40.0;
-        double ac2YOffset = (rng.NextDouble() - 0.5) * 20.0;
-
-        var sector = new WorldSector
+        // Берегова лінія: суша розташована вище берега.
+        var land = new List<MapPoint>
         {
-            Seed = seed,
-            Airports =
-            [
-                new Airport
-                {
-                    Id = 1,
-                    IcaoCode = "UKLL",
-                    Name = "Lviv Danylo Halytskyi",
-                    CoordX = 140m,
-                    CoordY = 430m,
-                    MaxCapacity = 15,
-                    Runways =
-                    [
-                        new Runway { Id = 1, AirportId = 1, Designator = "31", Angle = 310, Length = 3305m, IsAvailable = true }
-                    ]
-                },
-                new Airport
-                {
-                    Id = 2,
-                    IcaoCode = "UKBB",
-                    Name = "Kyiv Boryspil",
-                    CoordX = 580m,
-                    CoordY = 260m,
-                    MaxCapacity = 35,
-                    Runways =
-                    [
-                        new Runway { Id = 2, AirportId = 2, Designator = "36R", Angle = 360, Length = 4000m, IsAvailable = true },
-                        new Runway { Id = 3, AirportId = 2, Designator = "18L", Angle = 180, Length = 3500m, IsAvailable = true }
-                    ]
-                },
-                new Airport
-                {
-                    Id = 3,
-                    IcaoCode = "UKKK",
-                    Name = "Kyiv Zhuliany",
-                    CoordX = 530m,
-                    CoordY = 310m,
-                    MaxCapacity = 20,
-                    Runways =
-                    [
-                        new Runway { Id = 4, AirportId = 3, Designator = "08", Angle = 80, Length = 2310m, IsAvailable = true }
-                    ]
-                },
-                new Airport
-                {
-                    Id = 4,
-                    IcaoCode = "UKOO",
-                    Name = "Odesa International",
-                    CoordX = 520m,
-                    CoordY = 560m,
-                    MaxCapacity = 18,
-                    Runways =
-                    [
-                        new Runway { Id = 5, AirportId = 4, Designator = "16", Angle = 160, Length = 2800m, IsAvailable = true }
-                    ]
-                },
-                new Airport
-                {
-                    Id = 5,
-                    IcaoCode = "UKHH",
-                    Name = "Kharkiv International",
-                    CoordX = 840m,
-                    CoordY = 270m,
-                    MaxCapacity = 22,
-                    Runways =
-                    [
-                        new Runway { Id = 6, AirportId = 5, Designator = "07", Angle = 70, Length = 2500m, IsAvailable = true }
-                    ]
-                }
-            ],
-            Waypoints =
-            [
-                new Waypoint("TMR", 260m, 380m),
-                new Waypoint("SLV", 380m, 330m),
-                new Waypoint("KVR", 480m, 290m),
-                new Waypoint("BODRU", 530m, 450m),
-                new Waypoint("PEKIT", 710m, 265m)
-            ],
-            WeatherZones =
-            [
-                new WeatherZone
-                {
-                    Id = 1,
-                    Name = "RESTRICTED ZONE #04",
-                    ZoneType = "STORM",
-                    CenterX = 460m,
-                    CenterY = 200m,
-                    Radius = 55m,
-                    MinAltitude = 0m,
-                    MaxAltitude = 22000m,
-                    IsActive = true
-                }
-            ],
-            Aircraft =
-            [
-                new Aircraft
-                {
-                    Id = 1,
-                    Callsign = "UKR102",
-                    ModelId = 1,
-                    IsActive = true,
-                    CoordX = (decimal)(310.0 + ac1XOffset),
-                    CoordY = (decimal)(360.0 + ac1YOffset),
-                    Altitude = 28000m,
-                    Heading = 70,
-                    TargetHeading = 70,
-                    TargetAltitude = 28000m,
-                    GroundSpeed = 420m,
-                    FuelRemaining = 4850m,
-                    DepartureAirportIcao = "UKLL",
-                    ArrivalAirportIcao = "UKBB",
-                    OriginX = 140.0,
-                    OriginY = 430.0,
-                    DestinationX = 580.0,
-                    DestinationY = 260.0,
-                    TrailPoints = [new(140.0, 430.0, 28000m), new(310.0 + ac1XOffset, 360.0 + ac1YOffset, 28000m)],
-                    Model = new AircraftModel
-                    {
-                        Id = 1,
-                        ModelName = "Boeing 737-800",
-                        Category = "PASSENGER",
-                        CruiseSpeed = 450m,
-                        MaxAltitude = 41000m,
-                        FuelCapacity = 20894m,
-                        IconType = "B738"
-                    }
-                },
-                new Aircraft
-                {
-                    Id = 2,
-                    Callsign = "WZZ418",
-                    ModelId = 2,
-                    IsActive = true,
-                    CoordX = (decimal)(460.0 + ac2XOffset),
-                    CoordY = (decimal)(310.0 + ac2YOffset),
-                    Altitude = 16000m,
-                    Heading = 242,
-                    TargetHeading = 242,
-                    TargetAltitude = 16000m,
-                    GroundSpeed = 340m,
-                    FuelRemaining = 3200m,
-                    DepartureAirportIcao = "UKBB",
-                    ArrivalAirportIcao = "UKLL",
-                    OriginX = 580.0,
-                    OriginY = 260.0,
-                    DestinationX = 140.0,
-                    DestinationY = 430.0,
-                    TrailPoints = [new(580.0, 260.0, 16000m), new(460.0 + ac2XOffset, 310.0 + ac2YOffset, 16000m)],
-                    Model = new AircraftModel
-                    {
-                        Id = 2,
-                        ModelName = "Airbus A320",
-                        Category = "PASSENGER",
-                        CruiseSpeed = 450m,
-                        MaxAltitude = 39000m,
-                        FuelCapacity = 19000m,
-                        IconType = "A320"
-                    }
-                },
-                new Aircraft
-                {
-                    Id = 3,
-                    Callsign = "LOT751",
-                    ModelId = 3,
-                    IsActive = true,
-                    CoordX = 400m,
-                    CoordY = 280m,
-                    Altitude = 31000m,
-                    Heading = 80,
-                    TargetHeading = 80,
-                    TargetAltitude = 31000m,
-                    GroundSpeed = 410m,
-                    FuelRemaining = 3900m,
-                    DepartureAirportIcao = "UKKK",
-                    ArrivalAirportIcao = "UKHH",
-                    OriginX = 530.0,
-                    OriginY = 310.0,
-                    DestinationX = 840.0,
-                    DestinationY = 270.0,
-                    TrailPoints = [new(530.0, 310.0, 31000m), new(400.0, 280.0, 31000m)],
-                    Model = new AircraftModel
-                    {
-                        Id = 3,
-                        ModelName = "Embraer E195",
-                        Category = "REGIONAL",
-                        CruiseSpeed = 430m,
-                        MaxAltitude = 37000m,
-                        FuelCapacity = 12971m,
-                        IconType = "E195"
-                    }
-                },
-                new Aircraft
-                {
-                    Id = 4,
-                    Callsign = "THY461",
-                    ModelId = 4,
-                    IsActive = true,
-                    CoordX = 530m,
-                    CoordY = 480m,
-                    Altitude = 22000m,
-                    Heading = 350,
-                    TargetHeading = 350,
-                    TargetAltitude = 22000m,
-                    GroundSpeed = 390m,
-                    FuelRemaining = 5400m,
-                    DepartureAirportIcao = "UKOO",
-                    ArrivalAirportIcao = "UKBB",
-                    OriginX = 520.0,
-                    OriginY = 560.0,
-                    DestinationX = 580.0,
-                    DestinationY = 260.0,
-                    TrailPoints = [new(520.0, 560.0, 22000m), new(530.0, 480.0, 22000m)],
-                    Model = new AircraftModel
-                    {
-                        Id = 4,
-                        ModelName = "Airbus A321",
-                        Category = "PASSENGER",
-                        CruiseSpeed = 460m,
-                        MaxAltitude = 39800m,
-                        FuelCapacity = 23700m,
-                        IconType = "A321"
-                    }
-                }
-            ]
+            new(0, 0),
+            new(MapWidth, 0)
         };
 
+        for (int x = MapWidth; x >= 0; x -= 125)
+        {
+            land.Add(new MapPoint(x, random.Next(490, 651)));
+        }
+
+        sector.Terrain.Add(new TerrainPatch("LAND", land));
+
+        // Генерація ділянок рельєфу.
+        for (int i = 0; i < 5; i++)
+        {
+            double centerX = random.Next(160, 841);
+            double centerY = random.Next(130, 381);
+            double radiusX = random.Next(70, 151);
+            double radiusY = random.Next(40, 91);
+
+            var points = new List<MapPoint>();
+
+            for (int vertex = 0; vertex < 12; vertex++)
+            {
+                double angle = vertex * Math.PI / 6;
+                double scale = random.Next(75, 101) / 100.0;
+
+                double x = centerX
+                    + Math.Cos(angle) * radiusX * scale;
+
+                double y = centerY
+                    + Math.Sin(angle) * radiusY * scale;
+
+                points.Add(new MapPoint(
+                    Math.Round(x, 3),
+                    Math.Round(y, 3)));
+            }
+
+            sector.Terrain.Add(
+                new TerrainPatch("HIGHLAND", points));
+        }
+
+        // Назви зберігаємо, а розташування генеруємо.
+        (string Code, string Name)[] airports =
+        [
+            ("UKLL", "Lviv Danylo Halytskyi"),
+            ("UKBB", "Kyiv Boryspil"),
+            ("UKKK", "Kyiv Zhuliany"),
+            ("UKOO", "Odesa International"),
+            ("UKHH", "Kharkiv International")
+        ];
+
+        // Кожен аеропорт займає окрему комірку.
+        // Це гарантує відстань між ними щонайменше 110 одиниць.
+        var cells = Enumerable.Range(0, 12).ToList();
+
+        for (int i = 0; i < airports.Length; i++)
+        {
+            int index = random.Next(0, cells.Count);
+            int cell = cells[index];
+
+            cells.RemoveAt(index);
+
+            int headingNumber = random.Next(1, 37);
+            int reciprocal = (headingNumber + 17) % 36 + 1;
+
+            var airport = new Airport
+            {
+                Id = i + 1,
+                IcaoCode = airports[i].Code,
+                Name = airports[i].Name,
+
+                CoordX = 130 + cell % 4 * 240
+                    + random.Next(-20, 21),
+
+                CoordY = 100 + cell / 4 * 150
+                    + random.Next(-20, 21),
+
+                MaxCapacity = random.Next(10, 41),
+
+                // Фіксоване значення забезпечує повторюваність.
+                CreatedAt = DateTime.UnixEpoch
+            };
+
+            int runwayLength = random.Next(22, 41) * 100;
+
+            airport.Runways =
+            [
+                new Runway
+                {
+                    Id = i * 2 + 1,
+                    AirportId = airport.Id,
+                    Designator = headingNumber.ToString("D2"),
+                    Angle = headingNumber * 10 % 360,
+                    Length = runwayLength,
+                    IsAvailable = true
+                },
+                new Runway
+                {
+                    Id = i * 2 + 2,
+                    AirportId = airport.Id,
+                    Designator = reciprocal.ToString("D2"),
+                    Angle = reciprocal * 10 % 360,
+                    Length = runwayLength,
+                    IsAvailable = true
+                }
+            ];
+
+            sector.Airports.Add(airport);
+        }
+
+        // Навігаційні точки.
+        int waypointCount = random.Next(8, 15);
+
+        for (int i = 0; i < waypointCount; i++)
+        {
+            sector.Waypoints.Add(new Waypoint(
+                $"WP{i + 1:D2}",
+                random.Next(60, 941),
+                random.Next(60, 641)));
+        }
+
+        // Погодні та обмежені зони.
+        string[] zoneTypes =
+        [
+            "STORM",
+            "TURBULENCE",
+            "RESTRICTED"
+        ];
+
+        for (int i = 0; i < zoneTypes.Length; i++)
+        {
+            sector.WeatherZones.Add(new WeatherZone
+            {
+                Id = i + 1,
+                Name = $"{zoneTypes[i]} {i + 1:D2}",
+                ZoneType = zoneTypes[i],
+
+                CenterX = random.Next(100, 901),
+                CenterY = random.Next(100, 601),
+                Radius = random.Next(30, 66),
+
+                MinAltitude = 0,
+                MaxAltitude = random.Next(18, 37) * 1000,
+                IsActive = true
+            });
+        }
+
+        AircraftModel[] models =
+        [
+            new()
+            {
+                Id = 1,
+                ModelName = "Boeing 737-800",
+                Category = "PASSENGER",
+                CruiseSpeed = 450,
+                MaxAltitude = 41000,
+                FuelCapacity = 20894,
+                IconType = "B738"
+            },
+            new()
+            {
+                Id = 2,
+                ModelName = "Airbus A320",
+                Category = "PASSENGER",
+                CruiseSpeed = 450,
+                MaxAltitude = 39000,
+                FuelCapacity = 19000,
+                IconType = "A320"
+            },
+            new()
+            {
+                Id = 3,
+                ModelName = "Embraer E195",
+                Category = "REGIONAL",
+                CruiseSpeed = 430,
+                MaxAltitude = 37000,
+                FuelCapacity = 12971,
+                IconType = "E195"
+            },
+            new()
+            {
+                Id = 4,
+                ModelName = "Airbus A321",
+                Category = "PASSENGER",
+                CruiseSpeed = 460,
+                MaxAltitude = 39800,
+                FuelCapacity = 23700,
+                IconType = "A321"
+            }
+        ];
+
+        string[] callsigns =
+        [
+            "UKR102", "WZZ418", "LOT751", "THY461",
+            "UKR205", "WZZ619", "LOT832", "THY704"
+        ];
+
+        // Літаки та початкові маршрути.
+        for (int i = 0; i < callsigns.Length; i++)
+        {
+            int departureIndex = random.Next(0, airports.Length);
+
+            // Аеропорт прибуття завжди відрізняється від відправлення.
+            int arrivalIndex = (
+                departureIndex + random.Next(1, airports.Length)
+            ) % airports.Length;
+
+            var departure = sector.Airports[departureIndex];
+            var arrival = sector.Airports[arrivalIndex];
+
+            decimal progress = random.Next(15, 76) / 100m;
+
+            decimal x = departure.CoordX
+                + (arrival.CoordX - departure.CoordX) * progress;
+
+            decimal y = departure.CoordY
+                + (arrival.CoordY - departure.CoordY) * progress;
+
+            double heading = KinematicsCalculator.CalculateBearing(
+                (double)x,
+                (double)y,
+                (double)arrival.CoordX,
+                (double)arrival.CoordY);
+
+            decimal altitude = 14000
+                + i * 2000
+                + random.Next(0, 2) * 1000;
+
+            var model = models[i % models.Length];
+
+            sector.Aircraft.Add(new Aircraft
+            {
+                Id = i + 1,
+                Callsign = callsigns[i],
+                ModelId = model.Id,
+                Model = model,
+
+                CoordX = x,
+                CoordY = y,
+
+                Altitude = altitude,
+                TargetAltitude = altitude,
+
+                Heading = heading,
+                TargetHeading = heading,
+
+                GroundSpeed = random.Next(340, 431),
+                FuelRemaining = random.Next(3000, 7001),
+                IsActive = true,
+
+                DepartureAirportIcao = departure.IcaoCode,
+                ArrivalAirportIcao = arrival.IcaoCode,
+
+                OriginX = (double)departure.CoordX,
+                OriginY = (double)departure.CoordY,
+
+                DestinationX = (double)arrival.CoordX,
+                DestinationY = (double)arrival.CoordY,
+
+                TrailPoints =
+                [
+                    new((double)x, (double)y, altitude)
+                ]
+            });
+        }
+
         return sector;
+    }
+
+    // Детермінований генератор SplitMix64.
+    // Використовує всі 64 біти сіду.
+    private sealed class SeedRandom(long seed)
+    {
+        private ulong _state = unchecked((ulong)seed);
+
+        // min включно, max не включно.
+        public int Next(int min, int max)
+        {
+            unchecked
+            {
+                ulong value = (
+                    _state += 0x9E3779B97F4A7C15UL
+                );
+
+                value = (value ^ (value >> 30))
+                    * 0xBF58476D1CE4E5B9UL;
+
+                value = (value ^ (value >> 27))
+                    * 0x94D049BB133111EBUL;
+
+                value ^= value >> 31;
+
+                return min + (int)(
+                    value % (ulong)(max - min)
+                );
+            }
+        }
     }
 }

@@ -262,14 +262,14 @@ public class FlightInspectorVM : ViewModelBase
     {
         if (_selectedAircraft == null) return;
 
-        // Calculate bearing towards UKBB (580, 260)
+        // Use the destination generated for this flight.
         double directBearing = KinematicsCalculator.CalculateBearing(
-            (double)_selectedAircraft.CoordX, (double)_selectedAircraft.CoordY, 580.0, 260.0);
+            (double)_selectedAircraft.CoordX, (double)_selectedAircraft.CoordY, _selectedAircraft.DestinationX, _selectedAircraft.DestinationY);
 
         _selectedAircraft.TargetHeading = directBearing;
 
-        string cmd = $"proceed direct UKBB, heading {(int)directBearing:D3}";
-        string readback = $"Direct UKBB, heading {(int)directBearing:D3}";
+        string cmd = $"proceed direct {_selectedAircraft.ArrivalAirportIcao}, heading {(int)directBearing:D3}";
+        string readback = $"Direct {_selectedAircraft.ArrivalAirportIcao}, heading {(int)directBearing:D3}";
         _engine.Radio.DispatchAtcInstruction(_selectedAircraft, cmd);
         _engine.Radio.GeneratePilotReadback(_selectedAircraft, readback);
         _onInstructionSent(cmd, readback);
@@ -299,3 +299,4 @@ public class FlightInspectorVM : ViewModelBase
         _ => "North-West"
     };
 }
+

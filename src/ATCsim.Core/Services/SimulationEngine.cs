@@ -147,6 +147,7 @@ public class SimulationEngine : IDisposable
 
         lock (_lock)
         {
+            if (!IsRunning) return;
             SimTime = SimTime.AddSeconds(dtSeconds);
 
             foreach (var aircraft in ActiveAircraft)
@@ -167,3 +168,4 @@ public class SimulationEngine : IDisposable
         GC.SuppressFinalize(this);
     }
 }
+
