@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Globalization;
 using ATCsim.Core.Entities;
 
 namespace ATCsim.UI.Views.Dialogs;
@@ -14,11 +15,27 @@ public class AirportLookupItem
 
 public partial class AddAircraftWindow : Window
 {
+    private bool _applyingModelDefaults;
+    private bool _altitudeEdited;
+    private bool _speedEdited;
+
     public Aircraft? CreatedAircraft { get; private set; }
 
     public AddAircraftWindow(IReadOnlyList<Airport> airports)
     {
         InitializeComponent();
+
+        AltitudeBox.TextChanged += (_, _) =>
+        {
+            if (!_applyingModelDefaults) _altitudeEdited = true;
+        };
+        SpeedBox.TextChanged += (_, _) =>
+        {
+            if (!_applyingModelDefaults) _speedEdited = true;
+        };
+        ModelCombo.SelectionChanged += (_, _) => ApplyModelDefaults();
+        ModelCombo.ItemsSource = AircraftModelCatalog.All;
+        ModelCombo.SelectedIndex = 0;
 
         var airportList = airports.Select(a => new AirportLookupItem
         {
@@ -35,6 +52,24 @@ public partial class AddAircraftWindow : Window
         {
             DepartureCombo.SelectedIndex = 0;
             ArrivalCombo.SelectedIndex = airportList.Count > 1 ? 1 : 0;
+        }
+    }
+
+    private void ApplyModelDefaults()
+    {
+        if (ModelCombo.SelectedItem is not AircraftModelDefinition definition) return;
+
+        _applyingModelDefaults = true;
+        try
+        {
+            if (!_altitudeEdited)
+                AltitudeBox.Text = definition.DefaultAltitude.ToString(CultureInfo.InvariantCulture);
+            if (!_speedEdited)
+                SpeedBox.Text = definition.CruiseSpeed.ToString(CultureInfo.InvariantCulture);
+        }
+        finally
+        {
+            _applyingModelDefaults = false;
         }
     }
 
@@ -56,20 +91,21 @@ public partial class AddAircraftWindow : Window
             return;
         }
 
-        decimal.TryParse(AltitudeBox.Text, out decimal alt);
-        if (alt <= 0) alt = 28000m;
+        if (ModelCombo.SelectedItem is not AircraftModelDefinition definition) return;
+        var model = definition.CreateModel();
 
-        decimal.TryParse(SpeedBox.Text, out decimal speed);
-        if (speed <= 0) speed = 420m;
-
-        int modelIdx = ModelCombo.SelectedIndex;
-        var (modelName, iconType, maxAlt, fuelCap) = modelIdx switch
+        if (!decimal.TryParse(AltitudeBox.Text, out decimal alt) || alt <= 0 || alt > model.MaxAltitude)
         {
-            1 => ("Airbus A320", "A320", 39000m, 19000m),
-            2 => ("Embraer E195", "E195", 37000m, 12971m),
-            3 => ("Airbus A321", "A321", 39800m, 23700m),
-            _ => ("Boeing 737-800", "B738", 41000m, 20894m)
-        };
+            MessageBox.Show($"Вкажіть висоту понад 0 і до {model.MaxAltitude:0} ft для {model.ModelName}.",
+                "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (!decimal.TryParse(SpeedBox.Text, out decimal speed) || speed <= 0)
+        {
+            MessageBox.Show("Вкажіть швидкість понад 0 kts.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
 
         // Spawn initially near departure airport
         double spawnX = dep.X + 15.0;
@@ -78,14 +114,14 @@ public partial class AddAircraftWindow : Window
         CreatedAircraft = new Aircraft
         {
             Callsign = callsign,
-            ModelId = modelIdx + 1,
+            ModelId = model.Id,
             IsActive = true,
             CoordX = (decimal)spawnX,
             CoordY = (decimal)spawnY,
             Altitude = alt,
             TargetAltitude = alt,
             GroundSpeed = speed,
-            FuelRemaining = fuelCap * 0.45m,
+            FuelRemaining = model.FuelCapacity * 0.45m,
             DepartureAirportIcao = dep.IcaoCode,
             ArrivalAirportIcao = arr.IcaoCode,
             OriginX = dep.X,
@@ -93,16 +129,7 @@ public partial class AddAircraftWindow : Window
             DestinationX = arr.X,
             DestinationY = arr.Y,
             TrailPoints = [new(dep.X, dep.Y, alt), new(spawnX, spawnY, alt)],
-            Model = new AircraftModel
-            {
-                Id = modelIdx + 1,
-                ModelName = modelName,
-                IconType = iconType,
-                Category = "PASSENGER",
-                CruiseSpeed = speed,
-                MaxAltitude = maxAlt,
-                FuelCapacity = fuelCap
-            }
+            Model = model
         };
 
         DialogResult = true;

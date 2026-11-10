@@ -34,24 +34,38 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <!-- Left Branding and Menus -->
-                <StackPanel Grid.ColumnSpan="3" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="File" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#212529" Margin="0,0,16,0" Cursor="Hand"/>
                     <TextBlock Text="View" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#212529" Margin="0,0,16,0" Cursor="Hand"/>
                     <TextBlock Text="Add" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#212529" Margin="0,0,16,0" Cursor="Hand"/>
                     <TextBlock Text="Simulation" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#212529" Margin="0,0,24,0" Cursor="Hand"/>
-                    <TextBlock Text="ATCSim / Tactical Console (Layered MVVM + SQLite)" 
+                    <TextBlock Text="ATCsim / Tactical Console"
                                FontFamily="Montserrat, Segoe UI" FontSize="11" Foreground="#868E96" VerticalAlignment="Center"/>
                 </StackPanel>
 
+                <!-- Original project logo; viewport trims only the surrounding white margin. -->
+                <Image Grid.Row="1" Grid.Column="0" Width="140" Height="76"
+                       Margin="0,4,16,0" VerticalAlignment="Center" Stretch="Uniform"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       ToolTip="ATCsim" AutomationProperties.Name="ATCsim project logo">
+                    <Image.Source>
+                        <CroppedBitmap SourceRect="190,100,650,355">
+                            <CroppedBitmap.Source>
+                                <BitmapImage UriSource="/ATCsim.UI;component/Assets/logo.png"/>
+                            </CroppedBitmap.Source>
+                        </CroppedBitmap>
+                    </Image.Source>
+                </Image>
+
                 <!-- Right Simulator Controls -->
-                <WrapPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,8,0,0">
+                <WrapPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0"
+                           VerticalAlignment="Center">
                     <!-- Seed Input -->
-                    <Border Background="#F8F9FA" BorderBrush="#CED4DA" BorderThickness="1" CornerRadius="0" Padding="6,2" Margin="0,0,8,0">
+                    <Border Background="#F8F9FA" BorderBrush="#CED4DA" BorderThickness="1" CornerRadius="0" Padding="6,2" Margin="0,0,8,4">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="SEED:" FontFamily="Montserrat, Segoe UI" FontSize="11" FontWeight="Bold" Foreground="#495057" VerticalAlignment="Center" Margin="0,0,6,0"/>
                             <TextBox Text="{Binding SeedInput, UpdateSourceTrigger=PropertyChanged}" 
@@ -62,11 +76,11 @@
                         </StackPanel>
                     </Border>
 
-                    <Button Content="Random seed" Command="{Binding RandomSeedCommand}" Padding="6,5" Margin="0,0,6,0" ToolTip="Create a new seed and generate a map"/>
+                    <Button Content="Random seed" Command="{Binding RandomSeedCommand}" Padding="6,5" Margin="0,0,6,4" ToolTip="Create a new seed and generate a map"/>
                     <!-- Run Button -->
                     <Button Command="{Binding RunCommand}" 
                             Background="#2B8A3E" Foreground="#FFFFFF" 
-                            BorderThickness="0" Padding="14,5" Margin="0,0,6,0" Cursor="Hand">
+                            BorderThickness="0" Padding="14,5" Margin="0,0,6,4" Cursor="Hand">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="▶ " FontSize="10" VerticalAlignment="Center"/>
                             <TextBlock Text="Run" FontFamily="Montserrat, Segoe UI" FontWeight="Bold" FontSize="11" VerticalAlignment="Center"/>
@@ -76,7 +90,7 @@
                     <!-- Pause Button -->
                     <Button Command="{Binding PauseCommand}" 
                             Background="#F1F3F5" Foreground="#212529" 
-                            BorderBrush="#CED4DA" BorderThickness="1" Padding="14,5" Margin="0,0,6,0" Cursor="Hand">
+                            BorderBrush="#CED4DA" BorderThickness="1" Padding="14,5" Margin="0,0,6,4" Cursor="Hand">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="⏸ " FontSize="10" VerticalAlignment="Center"/>
                             <TextBlock Text="Pause" FontFamily="Montserrat, Segoe UI" FontWeight="Bold" FontSize="11" VerticalAlignment="Center"/>
@@ -89,7 +103,7 @@
                             Background="#F1F3F5" Foreground="#212529" 
                             BorderBrush="#CED4DA" BorderThickness="1" 
                             FontFamily="Montserrat, Segoe UI" FontWeight="Bold" FontSize="11"
-                            Padding="12,5" Margin="0,0,12,0" Cursor="Hand"/>
+                            Padding="12,5" Margin="0,0,12,4" Cursor="Hand"/>
 
                     <!-- Add Aircraft -->
                     <Button Command="{Binding AddAircraftCommand}" 
@@ -97,7 +111,7 @@
                             Background="#F8F9FA" Foreground="#212529" 
                             BorderBrush="#CED4DA" BorderThickness="1" 
                             FontFamily="Montserrat, Segoe UI" FontWeight="SemiBold" FontSize="11"
-                            Padding="10,5" Margin="0,0,6,0" Cursor="Hand"/>
+                            Padding="10,5" Margin="0,0,6,4" Cursor="Hand"/>
 
                     <!-- Add Zone -->
                     <Button Command="{Binding AddZoneCommand}" 
@@ -105,7 +119,7 @@
                             Background="#F8F9FA" Foreground="#212529" 
                             BorderBrush="#CED4DA" BorderThickness="1" 
                             FontFamily="Montserrat, Segoe UI" FontWeight="SemiBold" FontSize="11"
-                            Padding="10,5" Margin="0,0,6,0" Cursor="Hand"/>
+                            Padding="10,5" Margin="0,0,6,4" Cursor="Hand"/>
 
                     <!-- Add Airport -->
                     <Button Command="{Binding AddAirportCommand}" 
@@ -113,11 +127,11 @@
                             Background="#F8F9FA" Foreground="#212529" 
                             BorderBrush="#CED4DA" BorderThickness="1" 
                             FontFamily="Montserrat, Segoe UI" FontWeight="SemiBold" FontSize="11"
-                            Padding="10,5" Margin="0,0,12,0" Cursor="Hand"/>
+                            Padding="10,5" Margin="0,0,12,4" Cursor="Hand"/>
 
                     <!-- Square Exit & Save Button [ ✕ ] -->
                     <Button Command="{Binding ExitAndSaveCommand}" 
-                            Width="26" Height="26"
+                            Width="26" Height="26" Margin="0,0,0,4"
                             Background="#C92A2A" Foreground="#FFFFFF" 
                             BorderThickness="0" 
                             Cursor="Hand" ToolTip="Зберегти прогрес у SQLite та завершити програму">
@@ -154,7 +168,8 @@
 
                     <!-- Callsign, Badge, ETA -->
                     <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
-                        <TextBlock Text="✈ " FontSize="14" Foreground="#212529" VerticalAlignment="Center"/>
+                        <Path Data="{Binding FlightIconGeometry}" Fill="#212529" Stretch="Uniform"
+                              Width="15" Height="15" Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding FlightCallsign}" FontFamily="Montserrat, Segoe UI" FontSize="13" FontWeight="Bold" Foreground="#212529" VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBlock Text="{Binding FlightModel}" FontFamily="Segoe UI" FontSize="12" Foreground="#495057" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <Border Background="#EBFBEE" BorderBrush="#D3F9D8" BorderThickness="1" CornerRadius="0" Padding="6,2" Margin="0,0,12,0">
@@ -178,7 +193,11 @@
                         <!-- Plane Marker Centered on the Dynamic Split -->
                         <Border Grid.Column="0" HorizontalAlignment="Right" Margin="0,0,-10,0"
                                 Background="#FFFFFF" BorderBrush="#212529" BorderThickness="1" Width="20" Height="20" CornerRadius="0">
-                            <TextBlock Text="✈" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#212529"/>
+                            <Path Data="{Binding FlightIconGeometry}" Fill="#212529" Stretch="Uniform"
+                                  Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                  RenderTransformOrigin="0.5,0.5">
+                                <Path.RenderTransform><RotateTransform Angle="90"/></Path.RenderTransform>
+                            </Path>
                         </Border>
                     </Grid>
 

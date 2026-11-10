@@ -228,7 +228,11 @@ public class FlightInspectorVM : ViewModelBase
 
         int fuel = (int)aircraft.FuelRemaining;
         FuelFormatted = $"{fuel:N0} kg";
-        FuelPercent = $"{Math.Clamp(fuel / 50, 10, 100)}% ({fuel / 1200}h {(fuel % 1200) / 20}m)";
+        decimal capacity = aircraft.Model?.FuelCapacity > 0 ? aircraft.Model.FuelCapacity : 20894m;
+        decimal percent = Math.Clamp(aircraft.FuelRemaining / capacity * 100m, 0m, 100m);
+        decimal hourlyBurn = AircraftPerformance.FuelBurnPerHour(aircraft.Model);
+        int remainingMinutes = (int)(Math.Max(0m, aircraft.FuelRemaining) / hourlyBurn * 60m);
+        FuelPercent = $"{percent:0}% ({remainingMinutes / 60}h {remainingMinutes % 60}m)";
     }
 
     private void ExecuteTurnHeading()
@@ -247,7 +251,10 @@ public class FlightInspectorVM : ViewModelBase
     private void ExecuteClimbDescend()
     {
         if (_selectedAircraft == null) return;
-        decimal newAlt = _selectedAircraft.Altitude >= 24000m ? 18000m : 32000m;
+        decimal ceiling = _selectedAircraft.Model?.MaxAltitude > 0 ? _selectedAircraft.Model.MaxAltitude : 32000m;
+        decimal upper = Math.Min(32000m, ceiling);
+        decimal lower = Math.Min(18000m, Math.Floor(upper * 0.6m / 1000m) * 1000m);
+        decimal newAlt = _selectedAircraft.Altitude >= (upper + lower) / 2m ? lower : upper;
         _selectedAircraft.TargetAltitude = newAlt;
 
         string verb = newAlt < _selectedAircraft.Altitude ? "descend" : "climb";

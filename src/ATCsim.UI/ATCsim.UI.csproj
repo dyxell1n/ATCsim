@@ -5,6 +5,10 @@
     <ProjectReference Include="..\ATCsim.Data\ATCsim.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Resource Include="Assets\logo.png" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>

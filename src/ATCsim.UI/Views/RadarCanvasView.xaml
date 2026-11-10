@@ -6,6 +6,82 @@
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1000">
 
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Resources/AviationIcons.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="RadarMarkerButton" TargetType="Button">
+                <Setter Property="Background" Value="#FFFFFF"/>
+                <Setter Property="BorderBrush" Value="#CED4DA"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Foreground" Value="#212529"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Padding" Value="4"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}" CornerRadius="1">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="BorderBrush" Value="#495057"/>
+                        <Setter Property="Background" Value="#F1F3F5"/>
+                    </Trigger>
+                    <Trigger Property="IsKeyboardFocused" Value="True">
+                        <Setter Property="BorderBrush" Value="#2B8A3E"/>
+                    </Trigger>
+                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                        <Setter Property="BorderBrush" Value="#2B8A3E"/>
+                        <Setter Property="BorderThickness" Value="2"/>
+                        <Setter Property="Background" Value="#EBFBEE"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+            <!-- Free aircraft silhouettes; the transparent hit area never paints a card. -->
+            <Style x:Key="AircraftOverlayButton" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid Background="Transparent">
+                                <Ellipse Width="32" Height="32" Fill="Transparent"
+                                         Stroke="{TemplateBinding BorderBrush}" StrokeThickness="2"
+                                         IsHitTestVisible="False"/>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="BorderBrush" Value="#CED4DA"/>
+                    </Trigger>
+                    <Trigger Property="IsKeyboardFocused" Value="True">
+                        <Setter Property="BorderBrush" Value="#2B8A3E"/>
+                    </Trigger>
+                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                        <Setter Property="BorderBrush" Value="#2B8A3E"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding HasConflict}" Value="True">
+                        <Setter Property="BorderBrush" Value="#C92A2A"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
     <!-- Interactive Tactical Radar Viewport: Pan with RMB drag, Zoom with Mouse Wheel -->
     <Grid x:Name="ViewportContainer" 
           Background="#1E382B" 
@@ -113,46 +189,21 @@
                 </ItemsControl.ItemContainerStyle>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Canvas Margin="-12,-12,0,0">
+                        <Canvas Margin="-16,-16,0,0">
                             <!-- Clickable Airport Beacon Button -->
                             <Button Command="{Binding DataContext.SelectAirportCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}"
-                                    Width="24" Height="24"
-                                    Background="#FFFFFF"
-                                    BorderThickness="2"
-                                    Cursor="Hand"
-                                    Padding="0">
-                                <Button.Style>
-                                    <Style TargetType="Button">
-                                        <Setter Property="BorderBrush" Value="#212529"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                <Setter Property="BorderBrush" Value="#2B8A3E"/>
-                                                <Setter Property="Background" Value="#EBFBEE"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                                <Ellipse Width="6" Height="6" Fill="#212529"/>
+                                    Width="32" Height="32" Style="{StaticResource RadarMarkerButton}"
+                                    ToolTip="{Binding Name}" AutomationProperties.Name="{Binding IcaoCode}">
+                                <Path Data="{StaticResource AirportIcon}" Width="22" Height="22"
+                                      Stretch="Uniform" Fill="#212529"/>
                             </Button>
 
                             <!-- Airport Label Card (Clickable) -->
-                            <Border Canvas.Left="26" Canvas.Top="-6"
-                                    Background="#FFFFFF"
-                                    BorderThickness="1"
-                                    Padding="6,3"
-                                    CornerRadius="1">
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Setter Property="BorderBrush" Value="#CED4DA"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                <Setter Property="BorderBrush" Value="#2B8A3E"/>
-                                                <Setter Property="BorderThickness" Value="1.5"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Style>
+                            <Button Canvas.Left="38" Canvas.Top="-2" Padding="6,3"
+                                    Style="{StaticResource RadarMarkerButton}"
+                                    Command="{Binding DataContext.SelectAirportCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}" ToolTip="{Binding Name}">
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="{Binding IcaoCode}" FontFamily="Montserrat" FontSize="10" FontWeight="Bold" Foreground="#212529" Margin="0,0,4,0"/>
@@ -160,7 +211,7 @@
                                     </StackPanel>
                                     <TextBlock Text="{Binding Subtitle}" FontFamily="Segoe UI" FontSize="8" Foreground="#6C757D"/>
                                 </StackPanel>
-                            </Border>
+                            </Button>
                         </Canvas>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -181,63 +232,38 @@
                 </ItemsControl.ItemContainerStyle>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Canvas Margin="-14,-14,0,0">
+                        <Canvas Margin="-17,-17,0,0">
                             <!-- Subtle Light Forward Heading Direction Vector -->
-                            <Line X1="14" Y1="14" X2="{Binding VectorEndX}" Y2="{Binding VectorEndY}"
+                            <Line X1="17" Y1="17" X2="{Binding VectorEndX}" Y2="{Binding VectorEndY}"
                                   Stroke="#F8F9FA" StrokeThickness="1.5" Opacity="0.85"
                                   StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
 
                             <!-- Plane Icon Button / Hitbox -->
                             <Button Command="{Binding DataContext.SelectTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}"
-                                    Width="28" Height="28"
-                                    Background="#FFFFFF"
-                                    BorderThickness="1"
-                                    Cursor="Hand"
-                                    Padding="3">
-                                <Button.Style>
-                                    <Style TargetType="Button">
-                                        <Setter Property="BorderBrush" Value="#212529"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                <Setter Property="BorderBrush" Value="#2B8A3E"/>
-                                                <Setter Property="BorderThickness" Value="2"/>
-                                                <Setter Property="Background" Value="#EBFBEE"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding HasConflict}" Value="True">
-                                                <Setter Property="BorderBrush" Value="#C92A2A"/>
-                                                <Setter Property="BorderThickness" Value="2"/>
-                                                <Setter Property="Background" Value="#FFF5F5"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-
-                                <!-- Vector Plane SVG Icon -->
-                                <Path Data="M10,2 L14,10 L22,12 L22,14 L14,15 L14,20 L17,22 L17,24 L10,22 L3,24 L3,22 L6,20 L6,15 L-2,14 L-2,12 L6,10 Z"
-                                      Fill="#212529"
-                                      Stretch="Uniform">
-                                    <Path.RenderTransform>
-                                        <RotateTransform Angle="{Binding Heading}" CenterX="10" CenterY="10"/>
-                                    </Path.RenderTransform>
-                                </Path>
+                                    Width="34" Height="34" Style="{StaticResource AircraftOverlayButton}"
+                                    ToolTip="{Binding ModelName}" AutomationProperties.Name="{Binding Callsign}">
+                                <!-- Rotate the glyph while keeping its transparent hit target fixed. -->
+                                <Grid Width="22" Height="22" RenderTransformOrigin="0.5,0.5">
+                                    <Grid.RenderTransform>
+                                        <RotateTransform Angle="{Binding Heading}"/>
+                                    </Grid.RenderTransform>
+                                    <Path Data="{Binding IconGeometry}" Fill="#212529" Stretch="Uniform"
+                                          Stroke="#F8F9FA" StrokeThickness="0.8" StrokeLineJoin="Round"
+                                          IsHitTestVisible="False"/>
+                                </Grid>
                             </Button>
 
                             <!-- Flight Telemetry Block Card: Hidden by default, highlighted on selection -->
-                            <Border Canvas.Left="34" Canvas.Top="-10" 
-                                    Background="#FFFFFF" 
-                                    BorderBrush="#2B8A3E" 
-                                    BorderThickness="1.5" 
+                            <Border Canvas.Left="40" Canvas.Top="-7"
+                                    BorderThickness="1.5"
                                     Padding="6,4" 
                                     CornerRadius="1">
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Setter Property="Visibility" Value="Collapsed"/>
-                                        <Setter Property="Effect">
-                                            <Setter.Value>
-                                                <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.3" Color="#000000"/>
-                                            </Setter.Value>
-                                        </Setter>
+                                        <Setter Property="Background" Value="#FFFFFF"/>
+                                        <Setter Property="BorderBrush" Value="#2B8A3E"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                                 <Setter Property="Visibility" Value="Visible"/>

@@ -21,6 +21,7 @@ public class AircraftTrackViewModel : ViewModelBase
     public string Callsign => Aircraft.Callsign;
     public string ModelName => Aircraft.Model?.ModelName ?? "B738";
     public string ShortModel => Aircraft.Model?.IconType ?? "B738";
+    public Geometry IconGeometry => Resources.AviationIcons.ForAircraft(ShortModel);
 
     public double X
     {
@@ -37,7 +38,14 @@ public class AircraftTrackViewModel : ViewModelBase
     public double Heading
     {
         get => _heading;
-        set => SetProperty(ref _heading, value);
+        set
+        {
+            if (SetProperty(ref _heading, value))
+            {
+                OnPropertyChanged(nameof(VectorEndX));
+                OnPropertyChanged(nameof(VectorEndY));
+            }
+        }
     }
 
     public decimal Altitude
@@ -72,9 +80,9 @@ public class AircraftTrackViewModel : ViewModelBase
 
     public string FlightLevelText => $"FL{(int)(Altitude / 100)}";
 
-    // Light forward direction vector endpoint relative to center (14, 14)
-    public double VectorEndX => 14.0 + 35.0 * Math.Sin(Heading * Math.PI / 180.0);
-    public double VectorEndY => 14.0 - 35.0 * Math.Cos(Heading * Math.PI / 180.0);
+    // Direction vector and 34px hit target share the same center.
+    public double VectorEndX => 17.0 + 35.0 * Math.Sin(Heading * Math.PI / 180.0);
+    public double VectorEndY => 17.0 - 35.0 * Math.Cos(Heading * Math.PI / 180.0);
 
     public AircraftTrackViewModel(Aircraft aircraft)
     {
@@ -89,8 +97,6 @@ public class AircraftTrackViewModel : ViewModelBase
         Heading = Aircraft.Heading;
         Altitude = Aircraft.Altitude;
         GroundSpeed = Aircraft.GroundSpeed;
-        OnPropertyChanged(nameof(VectorEndX));
-        OnPropertyChanged(nameof(VectorEndY));
     }
 }
 
@@ -223,6 +229,7 @@ public class RadarViewModel : ViewModelBase
         get => _selectedTrack;
         set
         {
+            if (ReferenceEquals(_selectedTrack, value)) return;
             if (_selectedTrack != null) _selectedTrack.IsSelected = false;
             if (SetProperty(ref _selectedTrack, value))
             {
@@ -237,6 +244,7 @@ public class RadarViewModel : ViewModelBase
         get => _selectedAirport;
         set
         {
+            if (ReferenceEquals(_selectedAirport, value)) return;
             if (_selectedAirport != null) _selectedAirport.IsSelected = false;
             if (SetProperty(ref _selectedAirport, value))
             {
