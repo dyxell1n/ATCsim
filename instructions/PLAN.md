@@ -110,6 +110,8 @@ Any LLM or developer working on this codebase must consult this document before 
   - [ ] Synthetic pilot readback generator conforming to ICAO phraseology.
   - [ ] Real-time append to `communication_logs`.
 - [ ] UI Interaction & Canvas Rendering (`ATCsim.UI`, Owner: O. Bezkorovainyi, M. Borkov):
+  - [x] Add cargo, business-jet and propeller aircraft choices with distinct rotating vector silhouettes; airport terminal icon and original logo before SEED. Verify selection, conflict styling, model defaults and model persistence.
+  - [x] Render aircraft silhouettes directly on the map with transparent hit targets and circular hover, selection and conflict indicators.
   - [ ] Track inspection: selection of active aircraft, command inputs, flight strip updates.
   - [ ] Dynamic path rendering: altitude gradient historic trail, dashed forward projection vector.
 

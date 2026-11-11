@@ -40,6 +40,8 @@ public class AircraftTracker
         // Update altitude towards target if assigned
         if (aircraft.TargetAltitude > 0)
         {
+            if (aircraft.Model is { MaxAltitude: > 0 } model)
+                aircraft.TargetAltitude = Math.Min(aircraft.TargetAltitude, model.MaxAltitude);
             aircraft.Altitude = KinematicsCalculator.UpdateAltitude(aircraft.Altitude, aircraft.TargetAltitude, dtSeconds);
         }
 
@@ -74,10 +76,10 @@ public class AircraftTracker
             }
         }
 
-        // Fuel burn calculation (~0.8 kg/sec at cruise)
+        // Shared simulation estimate scales the baseline burn to the aircraft model.
         if (aircraft.FuelRemaining > 0)
         {
-            decimal fuelBurn = (decimal)(0.75 * dtSeconds);
+            decimal fuelBurn = AircraftPerformance.FuelBurnPerHour(aircraft.Model) * (decimal)dtSeconds / 3600m;
             aircraft.FuelRemaining = Math.Max(0m, aircraft.FuelRemaining - fuelBurn);
         }
 

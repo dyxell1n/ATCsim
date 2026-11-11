@@ -109,6 +109,8 @@ public class RepositoryManager
                 INSERT INTO aircrafts (id, callsign, model_id, is_active, coord_x, coord_y, altitude, fuel_remaining)
                 VALUES (@id, @cs, @mid, @act, @x, @y, @alt, @fuel)
                 ON CONFLICT(id) DO UPDATE SET
+                    callsign = excluded.callsign,
+                    model_id = excluded.model_id,
                     coord_x = excluded.coord_x,
                     coord_y = excluded.coord_y,
                     altitude = excluded.altitude,
@@ -291,17 +293,24 @@ public class RepositoryManager
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
+                string modelName = reader.GetString(2);
+                string iconType = reader.GetString(3);
+                // Older snapshots store only the model name and icon code. Recover
+                // catalog capabilities without changing the existing SQLite schema.
+                var model = AircraftModelCatalog.CreateByIconType(iconType) ?? new AircraftModel
+                {
+                    ModelName = modelName,
+                    IconType = iconType,
+                    Category = "PASSENGER"
+                };
+                model.ModelName = modelName;
+
                 var ac = new Aircraft
                 {
                     Id = reader.GetInt32(0),
                     Callsign = reader.GetString(1),
-                    Model = new AircraftModel
-                    {
-                        Id = reader.GetInt32(0),
-                        ModelName = reader.GetString(2),
-                        IconType = reader.GetString(3),
-                        Category = "PASSENGER"
-                    },
+                    ModelId = model.Id,
+                    Model = model,
                     CoordX = (decimal)reader.GetDouble(4),
                     CoordY = (decimal)reader.GetDouble(5),
                     Altitude = (decimal)reader.GetDouble(6),

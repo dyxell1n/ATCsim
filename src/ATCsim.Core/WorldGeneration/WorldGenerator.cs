@@ -13,7 +13,7 @@ public class WorldGenerator : IWorldGenerator
         var random = new SeedRandom(seed);
         var sector = new WorldSector { Seed = seed };
 
-        // Берегова лінія: суша розташована вище берега.
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
         var land = new List<MapPoint>
         {
             new(0, 0),
@@ -27,7 +27,7 @@ public class WorldGenerator : IWorldGenerator
 
         sector.Terrain.Add(new TerrainPatch("LAND", land));
 
-        // Генерація ділянок рельєфу.
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
         for (int i = 0; i < 5; i++)
         {
             double centerX = random.Next(160, 841);
@@ -57,7 +57,7 @@ public class WorldGenerator : IWorldGenerator
                 new TerrainPatch("HIGHLAND", points));
         }
 
-        // Назви зберігаємо, а розташування генеруємо.
+        // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
         (string Code, string Name)[] airports =
         [
             ("UKLL", "Lviv Danylo Halytskyi"),
@@ -67,8 +67,8 @@ public class WorldGenerator : IWorldGenerator
             ("UKHH", "Kharkiv International")
         ];
 
-        // Кожен аеропорт займає окрему комірку.
-        // Це гарантує відстань між ними щонайменше 110 одиниць.
+        // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
+        // пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 110 пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
         var cells = Enumerable.Range(0, 12).ToList();
 
         for (int i = 0; i < airports.Length; i++)
@@ -95,7 +95,7 @@ public class WorldGenerator : IWorldGenerator
 
                 MaxCapacity = random.Next(10, 41),
 
-                // Фіксоване значення забезпечує повторюваність.
+                // ФіпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
                 CreatedAt = DateTime.UnixEpoch
             };
 
@@ -126,7 +126,7 @@ public class WorldGenerator : IWorldGenerator
             sector.Airports.Add(airport);
         }
 
-        // Навігаційні точки.
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
         int waypointCount = random.Next(8, 15);
 
         for (int i = 0; i < waypointCount; i++)
@@ -137,7 +137,7 @@ public class WorldGenerator : IWorldGenerator
                 random.Next(60, 641)));
         }
 
-        // Погодні та обмежені зони.
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ.
         string[] zoneTypes =
         [
             "STORM",
@@ -163,49 +163,7 @@ public class WorldGenerator : IWorldGenerator
             });
         }
 
-        AircraftModel[] models =
-        [
-            new()
-            {
-                Id = 1,
-                ModelName = "Boeing 737-800",
-                Category = "PASSENGER",
-                CruiseSpeed = 450,
-                MaxAltitude = 41000,
-                FuelCapacity = 20894,
-                IconType = "B738"
-            },
-            new()
-            {
-                Id = 2,
-                ModelName = "Airbus A320",
-                Category = "PASSENGER",
-                CruiseSpeed = 450,
-                MaxAltitude = 39000,
-                FuelCapacity = 19000,
-                IconType = "A320"
-            },
-            new()
-            {
-                Id = 3,
-                ModelName = "Embraer E195",
-                Category = "REGIONAL",
-                CruiseSpeed = 430,
-                MaxAltitude = 37000,
-                FuelCapacity = 12971,
-                IconType = "E195"
-            },
-            new()
-            {
-                Id = 4,
-                ModelName = "Airbus A321",
-                Category = "PASSENGER",
-                CruiseSpeed = 460,
-                MaxAltitude = 39800,
-                FuelCapacity = 23700,
-                IconType = "A321"
-            }
-        ];
+        var models = AircraftModelCatalog.All;
 
         string[] callsigns =
         [
@@ -213,12 +171,12 @@ public class WorldGenerator : IWorldGenerator
             "UKR205", "WZZ619", "LOT832", "THY704"
         ];
 
-        // Літаки та початкові маршрути.
+        // ЛіпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
         for (int i = 0; i < callsigns.Length; i++)
         {
             int departureIndex = random.Next(0, airports.Length);
 
-            // Аеропорт прибуття завжди відрізняється від відправлення.
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
             int arrivalIndex = (
                 departureIndex + random.Next(1, airports.Length)
             ) % airports.Length;
@@ -244,7 +202,14 @@ public class WorldGenerator : IWorldGenerator
                 + i * 2000
                 + random.Next(0, 2) * 1000;
 
-            var model = models[i % models.Length];
+            var definition = models[i % models.Count];
+            var model = definition.CreateModel();
+
+            // Keep exactly the same random draws, preserving map geometry and routes.
+            decimal speedSample = random.Next(340, 431);
+            decimal fuelSample = random.Next(3000, 7001);
+            if (model.Category == "LIGHT")
+                altitude = definition.DefaultAltitude + altitude % 2000;
 
             sector.Aircraft.Add(new Aircraft
             {
@@ -262,8 +227,8 @@ public class WorldGenerator : IWorldGenerator
                 Heading = heading,
                 TargetHeading = heading,
 
-                GroundSpeed = random.Next(340, 431),
-                FuelRemaining = random.Next(3000, 7001),
+                GroundSpeed = model.Id <= 4 ? speedSample : Math.Round(model.CruiseSpeed * speedSample / 430m),
+                FuelRemaining = model.Id <= 4 ? fuelSample : model.FuelCapacity * (0.4m + (fuelSample - 3000m) / 10000m),
                 IsActive = true,
 
                 DepartureAirportIcao = departure.IcaoCode,
@@ -285,13 +250,13 @@ public class WorldGenerator : IWorldGenerator
         return sector;
     }
 
-    // Детермінований генератор SplitMix64.
-    // Використовує всі 64 біти сіду.
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ SplitMix64.
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ 64 пїЅпїЅпїЅ пїЅпїЅпїЅ.
     private sealed class SeedRandom(long seed)
     {
         private ulong _state = unchecked((ulong)seed);
 
-        // min включно, max не включно.
+        // min пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, max пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
         public int Next(int min, int max)
         {
             unchecked

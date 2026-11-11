@@ -45,6 +45,8 @@ public class MainViewModel : ViewModelBase
     public RadarViewModel Radar { get; }
     public FlightInspectorVM Inspector { get; }
     public LogsViewModel Logs { get; }
+    public System.Windows.Media.Geometry FlightIconGeometry =>
+        Radar.SelectedTrack?.IconGeometry ?? Resources.AviationIcons.ForAircraft(null);
 
     public string SeedInput
     {
@@ -255,6 +257,7 @@ public class MainViewModel : ViewModelBase
             if (aircraft != null)
             {
                 Inspector.SetSelectedAircraft(aircraft);
+                Inspector.ActiveTab = "AIRCRAFT";
                 UpdateFlightRouteBanner(aircraft);
             }
         };
@@ -476,6 +479,7 @@ public class MainViewModel : ViewModelBase
 
     private void UpdateFlightRouteBanner(Aircraft ac)
     {
+        OnPropertyChanged(nameof(FlightIconGeometry));
         var depApt = _engine.Airports.FirstOrDefault(a => a.IcaoCode == ac.DepartureAirportIcao);
         var arrApt = _engine.Airports.FirstOrDefault(a => a.IcaoCode == ac.ArrivalAirportIcao);
 
