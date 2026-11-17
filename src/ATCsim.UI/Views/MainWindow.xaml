@@ -40,7 +40,13 @@
                 <!-- Left Branding and Menus -->
                 <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="File" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#212529" Margin="0,0,16,0" Cursor="Hand"/>
-                    <TextBlock Text="View" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#212529" Margin="0,0,16,0" Cursor="Hand"/>
+                    <Menu Background="Transparent" FontFamily="Montserrat, Segoe UI" FontSize="12"
+                          FontWeight="SemiBold" Foreground="#212529" Margin="0,0,16,0" VerticalAlignment="Center">
+                        <MenuItem Header="_View">
+                            <MenuItem Header="Show airport labels" IsCheckable="True"
+                                      IsChecked="{Binding Radar.ShowAirportLabels, Mode=TwoWay}"/>
+                        </MenuItem>
+                    </Menu>
                     <TextBlock Text="Add" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#212529" Margin="0,0,16,0" Cursor="Hand"/>
                     <TextBlock Text="Simulation" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#212529" Margin="0,0,24,0" Cursor="Hand"/>
                     <TextBlock Text="ATCsim / Tactical Console"
@@ -143,6 +149,15 @@
 
         <!-- 2. Responsive Flight Route Banner -->
         <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E9ECEF" BorderThickness="0,0,0,1" Padding="24,10">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasSelectedTrack}" Value="False">
+                            <Setter Property="Visibility" Value="Hidden"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="220"/>
@@ -219,6 +234,20 @@
                 </StackPanel>
             </Grid>
         </Border>
+
+        <TextBlock Grid.Row="1" Text="No aircraft selected" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   FontFamily="Segoe UI" FontSize="12" Foreground="#6C757D" IsHitTestVisible="False">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasSelectedTrack}" Value="False">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
 
         <!-- 3. Tactical Workspace (Resizable with GridSplitter) -->
         <Grid Grid.Row="2">
@@ -312,6 +341,9 @@
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsAircraftTab}" Value="True">
                                             <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding SelectedAircraft}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -416,6 +448,15 @@
 
                             <!-- Airport Info Card -->
                             <Border Background="#F8F9FA" BorderBrush="#E9ECEF" BorderThickness="1" Padding="14,10" CornerRadius="0">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedAirport}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
                                 <StackPanel>
                                     <Grid Margin="0,0,0,8">
                                         <TextBlock Text="{Binding SelectedAirport.Icao}" FontFamily="Montserrat, Segoe UI" FontSize="20" FontWeight="ExtraBold" Foreground="#212529"/>

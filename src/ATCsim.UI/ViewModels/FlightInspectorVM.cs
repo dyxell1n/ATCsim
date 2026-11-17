@@ -20,7 +20,6 @@ public class AirportDisplayModel
 public class FlightInspectorVM : ViewModelBase
 {
     private readonly SimulationEngine _engine;
-    private readonly Action<string, string> _onInstructionSent;
 
     private Aircraft? _selectedAircraft;
     private AirportDisplayModel? _selectedAirport;
@@ -145,10 +144,9 @@ public class FlightInspectorVM : ViewModelBase
     public ICommand SwitchToAircraftTabCommand { get; }
     public ICommand SwitchToAirportTabCommand { get; }
 
-    public FlightInspectorVM(SimulationEngine engine, Action<string, string> onInstructionSent)
+    public FlightInspectorVM(SimulationEngine engine)
     {
         _engine = engine;
-        _onInstructionSent = onInstructionSent;
 
         SwitchToAircraftTabCommand = new RelayCommand(() => ActiveTab = "AIRCRAFT");
         SwitchToAirportTabCommand = new RelayCommand(() => ActiveTab = "AIRPORT");
@@ -161,6 +159,7 @@ public class FlightInspectorVM : ViewModelBase
 
     public void LoadAirports(IReadOnlyList<Airport> airports)
     {
+        string? selectedIcao = SelectedAirport?.Icao;
         AvailableAirports.Clear();
         foreach (var apt in airports)
         {
@@ -191,12 +190,12 @@ public class FlightInspectorVM : ViewModelBase
             AvailableAirports.Add(adm);
         }
 
-        SelectedAirport = AvailableAirports.FirstOrDefault();
+        SelectedAirport = AvailableAirports.FirstOrDefault(airport => airport.Icao == selectedIcao);
     }
 
     public void SetSelectedAircraft(Aircraft? aircraft)
     {
-        _selectedAircraft = aircraft;
+        if (!SetProperty(ref _selectedAircraft, aircraft, nameof(SelectedAircraft))) return;
         if (aircraft == null) return;
 
         Callsign = aircraft.Callsign;
@@ -204,13 +203,22 @@ public class FlightInspectorVM : ViewModelBase
         OperatorName = aircraft.Callsign.StartsWith("UKR") ? "Ukraine Int." :
                        aircraft.Callsign.StartsWith("WZZ") ? "Wizz Air" :
                        aircraft.Callsign.StartsWith("LOT") ? "LOT Polish Airlines" : "Turkish Airlines";
-        Status = aircraft.IsActive ? "ACTIVE" : "INACTIVE";
 
         UpdateTelemetryDisplay(aircraft);
     }
 
     public void UpdateTelemetryDisplay(Aircraft aircraft)
     {
+        Status = aircraft.Operations.Phase switch
+        {
+            FlightPhase.ArrivalQueue or FlightPhase.Holding => "HOLDING",
+            FlightPhase.Departing => "DEPARTING",
+            FlightPhase.Approach => "APPROACH",
+            FlightPhase.Final => "FINAL",
+            FlightPhase.MissedApproach => "GOING AROUND",
+            FlightPhase.Landed => "LANDED",
+            _ => aircraft.IsAirborne ? "EN ROUTE" : "AWAITING DEPARTURE"
+        };
         if (_selectedAircraft != null && _selectedAircraft.Id != aircraft.Id)
             return;
 
@@ -238,14 +246,7 @@ public class FlightInspectorVM : ViewModelBase
     private void ExecuteTurnHeading()
     {
         if (_selectedAircraft == null) return;
-        double newHdg = (_selectedAircraft.Heading + 30) % 360;
-        _selectedAircraft.TargetHeading = newHdg;
-
-        string cmd = $"turn right heading {(int)newHdg:D3}";
-        string readback = $"Right heading {(int)newHdg:D3}";
-        _engine.Radio.DispatchAtcInstruction(_selectedAircraft, cmd);
-        _engine.Radio.GeneratePilotReadback(_selectedAircraft, readback);
-        _onInstructionSent(cmd, readback);
+        _engine.VectorAircraft(_selectedAircraft, _selectedAircraft.Heading + 30);
     }
 
     private void ExecuteClimbDescend()
@@ -255,43 +256,20 @@ public class FlightInspectorVM : ViewModelBase
         decimal upper = Math.Min(32000m, ceiling);
         decimal lower = Math.Min(18000m, Math.Floor(upper * 0.6m / 1000m) * 1000m);
         decimal newAlt = _selectedAircraft.Altitude >= (upper + lower) / 2m ? lower : upper;
-        _selectedAircraft.TargetAltitude = newAlt;
-
-        string verb = newAlt < _selectedAircraft.Altitude ? "descend" : "climb";
-        string cmd = $"{verb} FL{(int)(newAlt / 100)}";
-        string readback = $"{char.ToUpper(verb[0])}{verb[1..]}ing FL{(int)(newAlt / 100)}";
-        _engine.Radio.DispatchAtcInstruction(_selectedAircraft, cmd);
-        _engine.Radio.GeneratePilotReadback(_selectedAircraft, readback);
-        _onInstructionSent(cmd, readback);
+        _engine.ChangeAircraftAltitude(_selectedAircraft, newAlt);
     }
 
     private void ExecuteDirectToUkbb()
     {
         if (_selectedAircraft == null) return;
 
-        // Use the destination generated for this flight.
-        double directBearing = KinematicsCalculator.CalculateBearing(
-            (double)_selectedAircraft.CoordX, (double)_selectedAircraft.CoordY, _selectedAircraft.DestinationX, _selectedAircraft.DestinationY);
-
-        _selectedAircraft.TargetHeading = directBearing;
-
-        string cmd = $"proceed direct {_selectedAircraft.ArrivalAirportIcao}, heading {(int)directBearing:D3}";
-        string readback = $"Direct {_selectedAircraft.ArrivalAirportIcao}, heading {(int)directBearing:D3}";
-        _engine.Radio.DispatchAtcInstruction(_selectedAircraft, cmd);
-        _engine.Radio.GeneratePilotReadback(_selectedAircraft, readback);
-        _onInstructionSent(cmd, readback);
+        _engine.ResumeAircraftRoute(_selectedAircraft);
     }
 
     private void ExecuteHoldingPattern()
     {
         if (_selectedAircraft == null) return;
-        _selectedAircraft.TargetHeading = (_selectedAircraft.Heading + 180) % 360;
-
-        string cmd = "hold as published, expect further clearance";
-        string readback = "Holding as published, wilco";
-        _engine.Radio.DispatchAtcInstruction(_selectedAircraft, cmd);
-        _engine.Radio.GeneratePilotReadback(_selectedAircraft, readback);
-        _onInstructionSent(cmd, readback);
+        _engine.HoldAircraft(_selectedAircraft);
     }
 
     private static string GetCompassLabel(int degrees) => degrees switch

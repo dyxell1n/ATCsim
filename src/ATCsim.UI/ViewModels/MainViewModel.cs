@@ -12,6 +12,7 @@ public class MainViewModel : ViewModelBase
     private readonly SimulationEngine _engine;
     private readonly RepositoryManager _repoManager;
     private readonly IWorldGenerator _worldGenerator;
+    private int _terrainVersion = WorldSector.CurrentTerrainVersion;
 
     private string _seedInput = "84920417";
     private string _systemStatusText = "ONLINE (60 FPS)";
@@ -45,6 +46,7 @@ public class MainViewModel : ViewModelBase
     public RadarViewModel Radar { get; }
     public FlightInspectorVM Inspector { get; }
     public LogsViewModel Logs { get; }
+    public bool HasSelectedTrack => Radar.SelectedTrack != null;
     public System.Windows.Media.Geometry FlightIconGeometry =>
         Radar.SelectedTrack?.IconGeometry ?? Resources.AviationIcons.ForAircraft(null);
 
@@ -230,33 +232,14 @@ public class MainViewModel : ViewModelBase
 
         Radar = new RadarViewModel(_engine);
         Logs = new LogsViewModel();
-        Inspector = new FlightInspectorVM(_engine, (cmd, readback) =>
-        {
-            string cs = Radar.SelectedTrack?.Callsign ?? "UKR102";
-            int planeId = Radar.SelectedTrack?.Aircraft.Id ?? 1;
-
-            var logEntry = new CommunicationLog
-            {
-                AirportId = 1,
-                AircraftId = planeId,
-                SenderType = "ATC",
-                Message = $"{cs}, {cmd}.",
-                Timestamp = DateTime.UtcNow
-            };
-
-            // Write live to SQLite database
-            _repoManager.Logs.AddCommunicationLog(logEntry);
-            UpdateDatabaseStats();
-
-            Logs.AddLog("• ATC RADIO", "UKLL TOWER", $"{cs}, {cmd}.", isRadio: true);
-            Logs.AddLog("• READBACK", "PILOT " + cs, $"{readback}, {cs}.", isRadio: true);
-        });
+        Inspector = new FlightInspectorVM(_engine);
 
         Radar.TrackSelected += aircraft =>
         {
+            Inspector.SetSelectedAircraft(aircraft);
+            OnPropertyChanged(nameof(HasSelectedTrack));
             if (aircraft != null)
             {
-                Inspector.SetSelectedAircraft(aircraft);
                 Inspector.ActiveTab = "AIRCRAFT";
                 UpdateFlightRouteBanner(aircraft);
             }
@@ -264,10 +247,20 @@ public class MainViewModel : ViewModelBase
 
         Radar.AirportSelected += airport =>
         {
-            if (airport != null)
+            Inspector.SelectedAirport = airport == null
+                ? null
+                : Inspector.AvailableAirports.FirstOrDefault(a => a.Icao == airport.IcaoCode);
+            if (airport != null) Inspector.ActiveTab = "AIRPORT";
+        };
+
+        Inspector.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(FlightInspectorVM.SelectedAirport)
+                && Inspector.SelectedAirport?.Icao != Radar.SelectedAirport?.IcaoCode)
             {
-                Inspector.SelectedAirport = Inspector.AvailableAirports.FirstOrDefault(a => a.Icao == airport.IcaoCode);
-                Inspector.ActiveTab = "AIRPORT";
+                var marker = Radar.Airports.FirstOrDefault(a => a.IcaoCode == Inspector.SelectedAirport?.Icao);
+                if (marker != null) Radar.SelectAirportCommand.Execute(marker);
+                else Radar.SelectedAirport = null;
             }
         };
 
@@ -330,7 +323,7 @@ public class MainViewModel : ViewModelBase
         _engine.StateUpdated += OnSimulationStateUpdated;
         _engine.ConflictDetected += alert =>
         {
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _ = Application.Current?.Dispatcher.InvokeAsync(() =>
             {
                 Radar.MarkConflict(alert.Aircraft1.Callsign, alert.Aircraft2.Callsign);
                 Logs.AddLog(
@@ -353,9 +346,11 @@ public class MainViewModel : ViewModelBase
 
         _engine.Radio.MessageLogged += log =>
         {
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _ = Application.Current?.Dispatcher.InvokeAsync(() =>
             {
                 Logs.AddLog(log);
+                if (log.AirportId > 0 && log.SenderType is "ATC" or "AIRCRAFT")
+                    _repoManager.Logs.AddCommunicationLog(log);
             });
         };
 
@@ -373,17 +368,14 @@ public class MainViewModel : ViewModelBase
         if (dlg.ShowDialog() == true && dlg.CreatedAircraft != null)
         {
             var plane = dlg.CreatedAircraft;
-            plane.Id = _engine.ActiveAircraft.Count + 1;
+            plane.Id = _engine.ActiveAircraft.Select(aircraft => aircraft.Id).DefaultIfEmpty().Max() + 1;
+            _repoManager.SyncSectorToDatabase(new WorldSector { Seed = _engine.CurrentSeed, Aircraft = [plane] });
             _engine.AddAircraft(plane);
 
             var trackVm = new AircraftTrackViewModel(plane);
             Radar.Tracks.Add(trackVm);
-            Radar.SelectedTrack = trackVm;
 
-            // Sync to SQLite database
-            _repoManager.Aircraft.UpdateTelemetry(plane.Id, plane.CoordX, plane.CoordY, plane.Altitude, plane.FuelRemaining);
             UpdateDatabaseStats();
-            UpdateFlightRouteBanner(plane);
         }
     }
 
@@ -397,7 +389,8 @@ public class MainViewModel : ViewModelBase
         if (dlg.ShowDialog() == true && dlg.CreatedZone != null)
         {
             var newZone = dlg.CreatedZone;
-            newZone.Id = _engine.WeatherZones.Count + 1;
+            newZone.Id = _engine.WeatherZones.Select(zone => zone.Id).DefaultIfEmpty().Max() + 1;
+            _repoManager.SyncSectorToDatabase(new WorldSector { Seed = _engine.CurrentSeed, WeatherZones = [newZone] });
             _engine.AddWeatherZone(newZone);
             Radar.WeatherZones.Add(new WeatherZoneViewModel(newZone));
             Logs.AddLog("• METEO", "RADAR CENTER", $"New weather restriction {newZone.Name} ({newZone.ZoneType}) activated.", isRadio: false);
@@ -458,7 +451,8 @@ public class MainViewModel : ViewModelBase
             _engine.TimeScale,
             _engine.Airports,
             _engine.ActiveAircraft,
-            _engine.WeatherZones);
+            _engine.WeatherZones,
+            _terrainVersion);
 
         _repoManager.Logs.AddSimLog(new SimLog
         {
@@ -498,10 +492,10 @@ public class MainViewModel : ViewModelBase
         double flownDist = Math.Sqrt(Math.Pow((double)ac.CoordX - ac.OriginX, 2) + Math.Pow((double)ac.CoordY - ac.OriginY, 2));
         double remDist = Math.Sqrt(Math.Pow(ac.DestinationX - (double)ac.CoordX, 2) + Math.Pow(ac.DestinationY - (double)ac.CoordY, 2));
 
-        double pct = Math.Clamp((flownDist / totalDist) * 100.0, 5.0, 95.0);
+        double pct = Math.Clamp((flownDist / totalDist) * 100.0, 0.0, 100.0);
         FlightProgressPercent = pct;
-        FlownGridLength = new GridLength(Math.Max(1.0, pct), GridUnitType.Star);
-        RemainingGridLength = new GridLength(Math.Max(1.0, 100.0 - pct), GridUnitType.Star);
+        FlownGridLength = new GridLength(pct, GridUnitType.Star);
+        RemainingGridLength = new GridLength(100.0 - pct, GridUnitType.Star);
 
         int flownKm = (int)(flownDist);
         int remKm = (int)(remDist);
@@ -517,24 +511,23 @@ public class MainViewModel : ViewModelBase
             var saved = _repoManager.LoadSavedSession();
             if (saved.HasValue && saved.Value.Aircraft.Count > 0)
             {
-                var (seed, simTime, timeScale, aircraftList) = saved.Value;
+                var (seed, simTime, timeScale, aircraftList, terrainVersion, weatherZones) = saved.Value;
                 SeedInput = seed.ToString();
+                _terrainVersion = terrainVersion;
                 var airports = _repoManager.Airports.GetAll();
 
                 var savedSector = _worldGenerator.GenerateSector(seed);
+                if (_terrainVersion == WorldSector.LegacyTerrainVersion)
+                {
+                    _worldGenerator.RestoreLegacyTerrain(savedSector);
+                }
                 savedSector.Aircraft = aircraftList;
                 if (airports.Count > 0) savedSector.Airports = airports;
+                if (weatherZones != null) savedSector.WeatherZones = weatherZones;
 
-                _engine.LoadSector(savedSector);
+                _engine.LoadSector(savedSector, simTime);
                 _engine.SetTimeScale(timeScale);
-                Radar.RefreshSector(savedSector);
-                Inspector.LoadAirports(_engine.Airports);
-
-                if (savedSector.Aircraft.Count > 0)
-                {
-                    Inspector.SetSelectedAircraft(savedSector.Aircraft[0]);
-                    UpdateFlightRouteBanner(savedSector.Aircraft[0]);
-                }
+                RefreshRadarSector(savedSector);
 
                 Logs.AddLog("• RESTORE", "STORAGE ENGINE", $"Попередню збережену сесію (Seed: {seed}) завантажено з бази даних SQLite.", isRadio: false);
                 UpdateDatabaseStats();
@@ -548,20 +541,11 @@ public class MainViewModel : ViewModelBase
         // Generate baseline sector
         var sector = _worldGenerator.GenerateSector(defaultSeed);
         _engine.LoadSector(sector);
-        Radar.RefreshSector(sector);
+        RefreshRadarSector(sector);
 
         // Sync complete sector directly into SQLite database
         _repoManager.SyncSectorToDatabase(sector);
         UpdateDatabaseStats();
-
-        // Load airports into Inspector for airport tab
-        Inspector.LoadAirports(_engine.Airports);
-
-        if (sector.Aircraft.Count > 0)
-        {
-            Inspector.SetSelectedAircraft(sector.Aircraft[0]);
-            UpdateFlightRouteBanner(sector.Aircraft[0]);
-        }
 
         // Load historical communication logs from SQLite
         var dbLogs = _repoManager.Logs.GetCommunicationLogs(10);
@@ -584,22 +568,15 @@ public class MainViewModel : ViewModelBase
 
         var sector = _worldGenerator.GenerateSector(seed);
         _engine.LoadSector(sector);
-        Radar.RefreshSector(sector);
+        _terrainVersion = WorldSector.CurrentTerrainVersion;
+        RefreshRadarSector(sector);
 
         // Sync freshly generated sector to SQLite
         _repoManager.SyncSectorToDatabase(sector);
         UpdateDatabaseStats();
 
-        Inspector.LoadAirports(_engine.Airports);
-
-        if (sector.Aircraft.Count > 0)
-        {
-            Inspector.SetSelectedAircraft(sector.Aircraft[0]);
-            UpdateFlightRouteBanner(sector.Aircraft[0]);
-        }
-
         _repoManager.SaveSessionProgress(seed, _engine.SimTime, _engine.TimeScale,
-            sector.Airports, sector.Aircraft, sector.WeatherZones);
+            sector.Airports, sector.Aircraft, sector.WeatherZones, _terrainVersion);
 
         Logs.AddLog("• WORLD GEN", "SEED ENGINE", $"Procedural sector generated with seed {seed}. Saved to SQLite.", isRadio: false);
     }
@@ -610,26 +587,30 @@ public class MainViewModel : ViewModelBase
         DatabaseStatusText = $"DB: ONLINE (SQLite • 9 Tables • {count} Records)";
     }
 
+    private void RefreshRadarSector(WorldSector sector)
+    {
+        Radar.RefreshSector(sector);
+        Inspector.LoadAirports(_engine.Airports);
+        UpdateAirborneCount();
+    }
+
+    private void UpdateAirborneCount() =>
+        ActiveTargetsText = $"{_engine.ActiveAircraft.Count(a => a.IsAirborne)} AIRBORNE";
+
     private void OnSimulationStateUpdated()
     {
         Application.Current?.Dispatcher?.Invoke(() =>
         {
             SimTimeText = _engine.SimTime.ToString("HH:mm:ss") + " UTC";
-            ActiveTargetsText = $"{_engine.ActiveAircraft.Count(a => a.IsActive)} AIRBORNE";
+            UpdateAirborneCount();
             WindText = $"{_engine.Weather.CurrentWindDirection:D3}° @ {(int)_engine.Weather.CurrentWindSpeed} KTS";
 
             Radar.SyncPositions();
 
-            // Calculate flight progress for currently selected target (or first active)
-            var activeTarget = Radar.SelectedTrack?.Aircraft ?? _engine.ActiveAircraft.FirstOrDefault();
-            if (activeTarget != null)
+            if (Radar.SelectedTrack is { Aircraft: var aircraft })
             {
-                UpdateFlightRouteBanner(activeTarget);
-            }
-
-            if (Radar.SelectedTrack != null)
-            {
-                Inspector.UpdateTelemetryDisplay(Radar.SelectedTrack.Aircraft);
+                UpdateFlightRouteBanner(aircraft);
+                Inspector.UpdateTelemetryDisplay(aircraft);
             }
         });
     }

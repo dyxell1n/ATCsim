@@ -1,4 +1,5 @@
 using ATCsim.Core.Entities;
+using ATCsim.Core.Kinematics;
 using ATCsim.Core.WorldGeneration;
 using ATCsim.Data.Context;
 using ATCsim.Data.Repositories;
@@ -62,6 +63,28 @@ public sealed class AircraftModelPersistenceTests : IDisposable
         Assert.NotNull(restored.Model);
         Assert.Equal(model.ModelName, restored.Model.ModelName);
         Assert.Equal(model.IconType, restored.Model.IconType);
+    }
+
+    [Fact]
+    public void SavedSession_RestoresParkedAircraftAndItsPlannedDeparture()
+    {
+        var model = AircraftModelCatalog.CreateByIconType("SR22")!;
+        var aircraft = CreateAircraft(41, "PARKED41", model);
+        var airport = new Airport { IcaoCode = "UKLL", CoordX = 250.125m, CoordY = 350.25m };
+        var destination = new Airport { IcaoCode = "UKBB", CoordX = 700m, CoordY = 350.25m };
+        AircraftTracker.ScheduleDeparture(aircraft, airport, destination, targetAltitude: 8500m, departureSpeed: 147m);
+
+        _repository.SaveSessionProgress(12345, DateTime.UnixEpoch, 1, [], [aircraft], []);
+        var saved = _repository.LoadSavedSession();
+
+        Assert.True(saved.HasValue);
+        var restored = Assert.Single(saved.Value.Aircraft);
+        Assert.False(restored.IsAirborne);
+        Assert.Equal(airport.CoordX, restored.CoordX);
+        Assert.Equal(airport.CoordY, restored.CoordY);
+        Assert.Equal(8500m, restored.TargetAltitude);
+        Assert.Equal(147m, restored.PlannedDepartureSpeed);
+        Assert.Equal(aircraft.TrailPoints, restored.TrailPoints);
     }
 
     [Fact]

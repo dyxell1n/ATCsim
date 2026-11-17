@@ -98,6 +98,7 @@ Any LLM or developer working on this codebase must consult this document before 
   - [x] Deterministic procedural sector generation algorithm driven by `world_seed`.
   - [x] Positioning of airports, runway headings, and navigation waypoints.
   - [x] Generation of dynamic weather zones (storm fronts, turbulence).
+  - [x] Varied coastlines, islands, rivers, coastal sand, and mountain terrain.
 - [ ] Kinematics Simulation Engine (`ATCsim.Core.Kinematics`, Owner: O. Bezkorovainyi):
   - [ ] Fixed-timestep simulation loop (`SimulationLoop`) with speed multipliers (1x, 2x, 4x, pause).
   - [ ] Aircraft spatial coordinate integration based on groundspeed, magnetic heading, altitude, and wind vectors.
@@ -105,13 +106,16 @@ Any LLM or developer working on this codebase must consult this document before 
 - [ ] Separation & Conflict Detector (`ATCsim.Core.Safety`, Owner: O. Bezkorovainyi):
   - [ ] Real-time pairwise distance calculation (horizontal < 5 NM, vertical < 1000 ft).
   - [ ] Alert generation and visual radar canvas pulse for conflicting tracks.
+  - [x] Shared runway separation for departures and arrivals, holding patterns, missed approaches, and airspace avoidance.
 - [ ] Radio Exchange Subsystem (`ATCsim.Core.Radio`, Owner: M. Borkov):
   - [ ] Controller dispatch command pipeline (heading, altitude, speed, runway assignments).
   - [ ] Synthetic pilot readback generator conforming to ICAO phraseology.
-  - [ ] Real-time append to `communication_logs`.
+  - [x] Real-time append to `communication_logs`.
 - [ ] UI Interaction & Canvas Rendering (`ATCsim.UI`, Owner: O. Bezkorovainyi, M. Borkov):
   - [x] Add cargo, business-jet and propeller aircraft choices with distinct rotating vector silhouettes; airport terminal icon and original logo before SEED. Verify selection, conflict styling, model defaults and model persistence.
   - [x] Render aircraft silhouettes directly on the map with transparent hit targets and circular hover, selection and conflict indicators.
+  - [x] Hide parked aircraft and clear airport or aircraft selection on empty radar clicks.
+  - [x] Toggle airport labels from the View menu.
   - [ ] Track inspection: selection of active aircraft, command inputs, flight strip updates.
   - [ ] Dynamic path rendering: altitude gradient historic trail, dashed forward projection vector.
 
@@ -129,7 +133,7 @@ Any LLM or developer working on this codebase must consult this document before 
   - [ ] Input validation: reject out-of-range headings (<0 or >=360) and invalid altitudes.
 - [ ] Integration Tests:
   - [ ] SQLite database read/write cycles, foreign key cascade behaviors.
-  - [ ] Session state save and restore roundtrips.
+  - [x] Session state save and restore roundtrips.
 - [ ] Performance Profiling:
   - [ ] Benchmark WPF Canvas rendering with 50+ simultaneous moving tracks (target >= 60 FPS).
 

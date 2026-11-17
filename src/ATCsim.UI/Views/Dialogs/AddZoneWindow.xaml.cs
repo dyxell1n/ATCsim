@@ -25,6 +25,7 @@ public partial class AddZoneWindow : Window
         {
             1 => "TURBULENCE",
             2 => "MILITARY",
+            3 => "RESTRICTED",
             _ => "STORM"
         };
 

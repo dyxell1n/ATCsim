@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ATCsim.Core.Entities;
 using ATCsim.Core.WorldGeneration;
 using ATCsim.Data.Context;
@@ -11,6 +12,8 @@ namespace ATCsim.Data.Repositories;
 /// </summary>
 public class RepositoryManager
 {
+    private sealed record AircraftOperationsSnapshot(FlightOperationsState Operations, bool IsActive, bool HasManualHeadingOverride);
+
     public DatabaseContext Context { get; }
     public AirportRepository Airports { get; }
     public AircraftRepository Aircraft { get; }
@@ -185,7 +188,9 @@ public class RepositoryManager
         return count > 0;
     }
 
-    public void SaveSessionProgress(long seed, DateTime simTime, double timeScale, IReadOnlyList<Airport> airports, IReadOnlyList<Aircraft> aircraftList, IReadOnlyList<WeatherZone> weatherZones)
+    public void SaveSessionProgress(long seed, DateTime simTime, double timeScale, IReadOnlyList<Airport> airports,
+        IReadOnlyList<Aircraft> aircraftList, IReadOnlyList<WeatherZone> weatherZones,
+        int terrainVersion = WorldSector.CurrentTerrainVersion)
     {
         using var conn = Context.CreateConnection();
         using var trans = conn.BeginTransaction();
@@ -194,18 +199,22 @@ public class RepositoryManager
         using var sessCmd = conn.CreateCommand();
         sessCmd.Transaction = trans;
         sessCmd.CommandText = @"
-            INSERT INTO sim_session (id, world_seed, sim_time, time_scale, saved_at)
-            VALUES (1, @seed, @st, @ts, @now)
+            INSERT INTO sim_session (id, world_seed, sim_time, time_scale, terrain_version, saved_at, zones_json)
+            VALUES (1, @seed, @st, @ts, @terrainVersion, @now, @zones)
             ON CONFLICT(id) DO UPDATE SET
                 world_seed = excluded.world_seed,
                 sim_time = excluded.sim_time,
                 time_scale = excluded.time_scale,
+                terrain_version = excluded.terrain_version,
+                zones_json = excluded.zones_json,
                 saved_at = excluded.saved_at;
         ";
         sessCmd.Parameters.AddWithValue("@seed", seed);
         sessCmd.Parameters.AddWithValue("@st", simTime.ToString("o"));
         sessCmd.Parameters.AddWithValue("@ts", timeScale);
+        sessCmd.Parameters.AddWithValue("@terrainVersion", terrainVersion);
         sessCmd.Parameters.AddWithValue("@now", DateTime.UtcNow.ToString("o"));
+        sessCmd.Parameters.AddWithValue("@zones", JsonSerializer.Serialize(weatherZones));
         sessCmd.ExecuteNonQuery();
 
         // 2. Save active aircraft
@@ -225,12 +234,12 @@ public class RepositoryManager
                     id, callsign, model_name, icon_type, coord_x, coord_y, altitude,
                     heading, ground_speed, target_heading, target_altitude, fuel_remaining,
                     departure_icao, arrival_icao, origin_x, origin_y, destination_x, destination_y,
-                    trail_points_json
+                    trail_points_json, departure_speed, operations_json
                 ) VALUES (
                     @id, @cs, @mn, @icon, @cx, @cy, @alt,
                     @hdg, @spd, @thdg, @talt, @fuel,
                     @dep, @arr, @ox, @oy, @dx, @dy,
-                    @trail
+                    @trail, @departureSpeed, @operations
                 );
             ";
             acCmd.Parameters.AddWithValue("@id", ac.Id);
@@ -252,13 +261,17 @@ public class RepositoryManager
             acCmd.Parameters.AddWithValue("@dx", ac.DestinationX);
             acCmd.Parameters.AddWithValue("@dy", ac.DestinationY);
             acCmd.Parameters.AddWithValue("@trail", trailJson);
+            acCmd.Parameters.AddWithValue("@departureSpeed", ac.PlannedDepartureSpeed is { } speed ? (double)speed : DBNull.Value);
+            acCmd.Parameters.AddWithValue("@operations", JsonSerializer.Serialize(
+                new AircraftOperationsSnapshot(ac.Operations, ac.IsActive, ac.HasManualHeadingOverride)));
             acCmd.ExecuteNonQuery();
         }
 
         trans.Commit();
     }
 
-    public (long Seed, DateTime SimTime, double TimeScale, List<Aircraft> Aircraft)? LoadSavedSession()
+    public (long Seed, DateTime SimTime, double TimeScale, List<Aircraft> Aircraft, int TerrainVersion,
+        List<WeatherZone>? WeatherZones)? LoadSavedSession()
     {
         if (!HasSavedSession()) return null;
 
@@ -266,16 +279,20 @@ public class RepositoryManager
         long seed = 84920417;
         DateTime simTime = DateTime.UtcNow;
         double timeScale = 1.0;
+        int terrainVersion;
+        List<WeatherZone>? weatherZones;
 
         using (var cmd = conn.CreateCommand())
         {
-            cmd.CommandText = "SELECT world_seed, sim_time, time_scale FROM sim_session WHERE id = 1;";
+            cmd.CommandText = "SELECT world_seed, sim_time, time_scale, terrain_version, zones_json FROM sim_session WHERE id = 1;";
             using var reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 seed = reader.GetInt64(0);
-                simTime = DateTime.Parse(reader.GetString(1));
+                simTime = DateTime.Parse(reader.GetString(1), null, System.Globalization.DateTimeStyles.RoundtripKind);
                 timeScale = reader.GetDouble(2);
+                terrainVersion = reader.GetInt32(3);
+                weatherZones = reader.IsDBNull(4) ? null : JsonSerializer.Deserialize<List<WeatherZone>>(reader.GetString(4));
             }
             else return null;
         }
@@ -287,7 +304,7 @@ public class RepositoryManager
                 SELECT id, callsign, model_name, icon_type, coord_x, coord_y, altitude,
                        heading, ground_speed, target_heading, target_altitude, fuel_remaining,
                        departure_icao, arrival_icao, origin_x, origin_y, destination_x, destination_y,
-                       trail_points_json
+                       trail_points_json, departure_speed, operations_json
                 FROM saved_aircraft ORDER BY id;
             ";
             using var reader = cmd.ExecuteReader();
@@ -324,8 +341,16 @@ public class RepositoryManager
                     OriginX = reader.GetDouble(14),
                     OriginY = reader.GetDouble(15),
                     DestinationX = reader.GetDouble(16),
-                    DestinationY = reader.GetDouble(17)
+                    DestinationY = reader.GetDouble(17),
+                    PlannedDepartureSpeed = reader.IsDBNull(19) ? null : (decimal)reader.GetDouble(19)
                 };
+
+                if (!reader.IsDBNull(20) && JsonSerializer.Deserialize<AircraftOperationsSnapshot>(reader.GetString(20)) is { } snapshot)
+                {
+                    ac.Operations = snapshot.Operations;
+                    ac.IsActive = snapshot.IsActive;
+                    ac.HasManualHeadingOverride = snapshot.HasManualHeadingOverride;
+                }
 
                 string trailJson = reader.GetString(18);
                 if (!string.IsNullOrWhiteSpace(trailJson))
@@ -354,7 +379,7 @@ public class RepositoryManager
             }
         }
 
-        return (seed, simTime, timeScale, list);
+        return (seed, simTime, timeScale, list, terrainVersion, weatherZones);
     }
 }
 

@@ -4,6 +4,9 @@ namespace ATCsim.Core.WorldGeneration;
 
 public record WorldSector
 {
+    public const int LegacyTerrainVersion = 1;
+    public const int CurrentTerrainVersion = 2;
+
     public long Seed { get; set; }
 
     public List<Airport> Airports { get; set; } = [];

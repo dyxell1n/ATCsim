@@ -32,6 +32,7 @@
                     <ComboBoxItem Content="STORM (Грозовий фронт / Конвективна активність)"/>
                     <ComboBoxItem Content="TURBULENCE (Зона сильної бовтанки)"/>
                     <ComboBoxItem Content="MILITARY (Спеціальний сектор операцій)"/>
+                    <ComboBoxItem Content="RESTRICTED (Заборонена для польотів зона)"/>
                 </ComboBox>
 
                 <!-- Center Coordinates & Radius -->

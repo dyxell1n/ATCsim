@@ -68,4 +68,21 @@ public class CollisionTests
         // Assert
         Assert.Empty(alerts);
     }
+
+    [Fact]
+    public void CanDepart_WaitsForAirborneTrafficButIgnoresParkedAircraft()
+    {
+        var detector = new CollisionDetector();
+        var first = new Aircraft { CoordX = 100m, CoordY = 100m, PlannedDepartureSpeed = 300m };
+        var second = new Aircraft { CoordX = 100m, CoordY = 100m, PlannedDepartureSpeed = 300m };
+        Aircraft[] traffic = [first, second];
+
+        Assert.True(detector.CanDepart(first, traffic));
+        first.Altitude = 25m;
+        Assert.Empty(detector.CheckSeparation(traffic));
+        Assert.False(detector.CanDepart(second, traffic));
+
+        first.Altitude = CollisionDetector.VerticalSeparationMinFt;
+        Assert.True(detector.CanDepart(second, traffic));
+    }
 }

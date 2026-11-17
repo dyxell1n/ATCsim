@@ -112,6 +112,7 @@ public static class DatabaseInitializer
             world_seed INTEGER NOT NULL,
             sim_time TEXT NOT NULL,
             time_scale REAL NOT NULL,
+            terrain_version INTEGER NOT NULL DEFAULT 1,
             saved_at TEXT NOT NULL
         );
 
@@ -134,7 +135,8 @@ public static class DatabaseInitializer
             origin_y REAL NOT NULL,
             destination_x REAL NOT NULL,
             destination_y REAL NOT NULL,
-            trail_points_json TEXT NOT NULL
+            trail_points_json TEXT NOT NULL,
+            departure_speed REAL
         );
     ";
 
@@ -145,7 +147,30 @@ public static class DatabaseInitializer
         command.CommandText = SchemaSql;
         command.ExecuteNonQuery();
 
+        EnsureColumn(connection, "saved_aircraft", "departure_speed", "REAL");
+        EnsureColumn(connection, "saved_aircraft", "operations_json", "TEXT");
+        EnsureColumn(connection, "sim_session", "terrain_version", "INTEGER NOT NULL DEFAULT 1");
+        EnsureColumn(connection, "sim_session", "zones_json", "TEXT");
         SeedInitialData(connection);
+    }
+
+    private static void EnsureColumn(SqliteConnection connection, string table, string column, string definition)
+    {
+        using var transaction = connection.BeginTransaction();
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "SELECT EXISTS(SELECT 1 FROM pragma_table_info(@table) WHERE name = @column);";
+        command.Parameters.AddWithValue("@table", table);
+        command.Parameters.AddWithValue("@column", column);
+
+        if ((long)command.ExecuteScalar()! == 0)
+        {
+            command.Parameters.Clear();
+            command.CommandText = $"ALTER TABLE {table} ADD COLUMN {column} {definition};";
+            command.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
     }
 
     private static void SeedInitialData(SqliteConnection connection)

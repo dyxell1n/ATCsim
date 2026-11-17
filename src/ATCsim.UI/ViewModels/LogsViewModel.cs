@@ -42,10 +42,11 @@ public class LogsViewModel : ViewModelBase
         FilterAlertsCommand = new RelayCommand(() => CurrentFilter = "ALERTS");
     }
 
-    public void AddLog(string tag, string sender, string message, bool isAlert = false, bool isRadio = false)
+    public void AddLog(string tag, string sender, string message, bool isAlert = false, bool isRadio = false,
+        DateTime? time = null)
     {
         var item = new LogDisplayItem(
-            DateTime.UtcNow.ToString("HH:mm:ss"),
+            (time ?? DateTime.UtcNow).ToString("HH:mm:ss"),
             tag,
             sender,
             message,
@@ -66,7 +67,7 @@ public class LogsViewModel : ViewModelBase
             _ => "• ATC RADAR"
         };
 
-        AddLog(tag, log.AirportIcao ?? "RADAR CONTROL", log.Message, isAlert: false, isRadio: isRadio);
+        AddLog(tag, log.AirportIcao ?? "RADAR CONTROL", log.Message, isRadio: isRadio, time: log.Timestamp);
     }
 
     private void ApplyFilter()

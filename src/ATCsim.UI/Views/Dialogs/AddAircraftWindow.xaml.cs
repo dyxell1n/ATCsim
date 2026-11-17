@@ -1,16 +1,13 @@
 using System.Windows;
 using System.Globalization;
 using ATCsim.Core.Entities;
+using ATCsim.Core.Kinematics;
 
 namespace ATCsim.UI.Views.Dialogs;
 
-public class AirportLookupItem
+public sealed record AirportLookupItem(Airport Airport)
 {
-    public string IcaoCode { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public double X { get; set; }
-    public double Y { get; set; }
-    public string Display => $"{IcaoCode} - {Name}";
+    public string Display => $"{Airport.IcaoCode} - {Airport.Name}";
 }
 
 public partial class AddAircraftWindow : Window
@@ -37,13 +34,7 @@ public partial class AddAircraftWindow : Window
         ModelCombo.ItemsSource = AircraftModelCatalog.All;
         ModelCombo.SelectedIndex = 0;
 
-        var airportList = airports.Select(a => new AirportLookupItem
-        {
-            IcaoCode = a.IcaoCode,
-            Name = a.Name,
-            X = (double)a.CoordX,
-            Y = (double)a.CoordY
-        }).ToList();
+        var airportList = airports.Select(a => new AirportLookupItem(a)).ToList();
 
         DepartureCombo.ItemsSource = airportList;
         ArrivalCombo.ItemsSource = airportList;
@@ -107,30 +98,15 @@ public partial class AddAircraftWindow : Window
             return;
         }
 
-        // Spawn initially near departure airport
-        double spawnX = dep.X + 15.0;
-        double spawnY = dep.Y - 15.0;
-
-        CreatedAircraft = new Aircraft
+        var aircraft = new Aircraft
         {
             Callsign = callsign,
             ModelId = model.Id,
-            IsActive = true,
-            CoordX = (decimal)spawnX,
-            CoordY = (decimal)spawnY,
-            Altitude = alt,
-            TargetAltitude = alt,
-            GroundSpeed = speed,
             FuelRemaining = model.FuelCapacity * 0.45m,
-            DepartureAirportIcao = dep.IcaoCode,
-            ArrivalAirportIcao = arr.IcaoCode,
-            OriginX = dep.X,
-            OriginY = dep.Y,
-            DestinationX = arr.X,
-            DestinationY = arr.Y,
-            TrailPoints = [new(dep.X, dep.Y, alt), new(spawnX, spawnY, alt)],
             Model = model
         };
+        AircraftTracker.ScheduleDeparture(aircraft, dep.Airport, arr.Airport, alt, speed);
+        CreatedAircraft = aircraft;
 
         DialogResult = true;
         Close();

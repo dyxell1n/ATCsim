@@ -41,12 +41,17 @@ public class WorldGenTests
         for (long seed = -50; seed <= 50; seed++)
         {
             var sector = generator.GenerateSector(seed);
+            var mainland = sector.Terrain[0];
             Assert.Equal(5, sector.Airports.Count);
             Assert.Equal(sector.Airports.Count, sector.Airports.Select(a => a.IcaoCode).Distinct().Count());
             foreach (var airport in sector.Airports)
             {
+                var marker = new MapPoint((double)airport.CoordX, (double)airport.CoordY);
                 Assert.InRange(airport.CoordX, 0m, WorldGenerator.MapWidth);
-                Assert.InRange(airport.CoordY, 0m, 420m); // Inland, north of minimum coastline Y=490.
+                Assert.InRange(airport.CoordY, 0m, WorldGenerator.MapHeight);
+                Assert.True(Contains(mainland, marker), $"Airport {airport.IcaoCode} is offshore for seed {seed}.");
+                Assert.DoesNotContain(sector.Terrain, patch =>
+                    (patch.Kind is "SAND" or "RIVER" or "MOUNTAIN") && Contains(patch, marker));
                 Assert.All(airport.Runways, runway =>
                 {
                     Assert.Equal(airport.Id, runway.AirportId);
@@ -77,6 +82,16 @@ public class WorldGenTests
                 Assert.InRange(zone.CenterX + zone.Radius, 0m, WorldGenerator.MapWidth);
                 Assert.InRange(zone.CenterY - zone.Radius, 0m, WorldGenerator.MapHeight);
                 Assert.InRange(zone.CenterY + zone.Radius, 0m, WorldGenerator.MapHeight);
+                if (zone.BlocksFlight)
+                {
+                    Assert.All(sector.Airports, airport =>
+                    {
+                        decimal dx = zone.CenterX - airport.CoordX;
+                        decimal dy = zone.CenterY - airport.CoordY;
+                        decimal clearance = zone.Radius + 20;
+                        Assert.True(dx * dx + dy * dy > clearance * clearance);
+                    });
+                }
             }
             foreach (var aircraft in sector.Aircraft)
             {
@@ -87,13 +102,75 @@ public class WorldGenTests
                 Assert.Equal((double)departure.CoordY, aircraft.OriginY);
                 Assert.Equal((double)arrival.CoordX, aircraft.DestinationX);
                 Assert.Equal((double)arrival.CoordY, aircraft.DestinationY);
-                Assert.InRange(aircraft.CoordX, 0m, WorldGenerator.MapWidth);
-                Assert.InRange(aircraft.CoordY, 0m, WorldGenerator.MapHeight);
-                Assert.InRange(aircraft.Altitude, 0m, aircraft.Model!.MaxAltitude);
+                Assert.Equal(departure.CoordX, aircraft.CoordX);
+                Assert.Equal(departure.CoordY, aircraft.CoordY);
+                Assert.Equal(0m, aircraft.Altitude);
+                Assert.Equal(0m, aircraft.GroundSpeed);
+                Assert.False(aircraft.IsAirborne);
+                Assert.InRange(aircraft.TargetAltitude, 1m, aircraft.Model!.MaxAltitude);
                 Assert.InRange(aircraft.Heading, 0, 359.999999);
                 Assert.InRange(aircraft.FuelRemaining, 0m, aircraft.Model.FuelCapacity);
+                var start = Assert.Single(aircraft.TrailPoints);
+                Assert.Equal((double)departure.CoordX, start.X);
+                Assert.Equal((double)departure.CoordY, start.Y);
             }
             Assert.Empty(new CollisionDetector().CheckSeparation(sector.Aircraft));
         }
+    }
+
+    [Fact]
+    public void Terrain_HasVariedSeaEdgesIslandsAndCoastalBiomes()
+    {
+        var generator = new WorldGenerator();
+        bool[] observedSeaEdges = new bool[4];
+        int sectorCountWithIslands = 0;
+        const int seedCount = 40;
+        for (long seed = 0; seed < seedCount; seed++)
+        {
+            var sector = generator.GenerateSector(seed);
+            var mainland = sector.Terrain[0];
+            Assert.Equal("LAND", mainland.Kind);
+
+            observedSeaEdges[0] |= mainland.Points.All(point => point.Y > 0);
+            observedSeaEdges[1] |= mainland.Points.All(point => point.Y < WorldGenerator.MapHeight);
+            observedSeaEdges[2] |= mainland.Points.All(point => point.X > 0);
+            observedSeaEdges[3] |= mainland.Points.All(point => point.X < WorldGenerator.MapWidth);
+
+            var islands = sector.Terrain.Skip(1).Where(patch => patch.Kind == "LAND").ToList();
+            if (islands.Count > 0) sectorCountWithIslands++;
+            foreach (var island in islands)
+                Assert.DoesNotContain(island.Points, point => Contains(mainland, point));
+
+            var beaches = sector.Terrain.Where(patch => patch.Kind == "SAND").ToList();
+            Assert.NotEmpty(beaches);
+            foreach (var beach in beaches)
+                Assert.Contains(beach.Points, point => mainland.Points.Contains(point));
+
+            Assert.Contains(sector.Terrain, patch => patch.Kind == "MOUNTAIN");
+            var rivers = sector.Terrain.Where(patch => patch.Kind == "RIVER").ToList();
+            Assert.NotEmpty(rivers);
+            foreach (var river in rivers)
+            {
+                Assert.Contains(river.Points, point => Contains(mainland, point));
+                Assert.Contains(river.Points, point => !Contains(mainland, point));
+            }
+        }
+
+        Assert.All(observedSeaEdges, observed => Assert.True(observed));
+        Assert.InRange(sectorCountWithIslands, 1, seedCount - 1);
+    }
+
+    private static bool Contains(TerrainPatch patch, MapPoint point)
+    {
+        bool inside = false;
+        for (int i = 0; i < patch.Points.Count; i++)
+        {
+            MapPoint start = patch.Points[i];
+            MapPoint end = patch.Points[(i + 1) % patch.Points.Count];
+            if ((start.Y > point.Y) != (end.Y > point.Y)
+                && point.X < start.X + (point.Y - start.Y) * (end.X - start.X) / (end.Y - start.Y))
+                inside = !inside;
+        }
+        return inside;
     }
 }

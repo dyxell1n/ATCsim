@@ -10,13 +10,45 @@ public class AircraftTracker
 {
     public event Action<Aircraft>? TelemetryUpdated;
 
-    public void UpdateAircraftPosition(Aircraft aircraft, WeatherService weather, double dtSeconds)
+    public static void ScheduleDeparture(Aircraft aircraft, Airport departure, Airport arrival,
+        decimal targetAltitude, decimal departureSpeed)
     {
-        if (!aircraft.IsActive)
+        aircraft.DepartureAirportIcao = departure.IcaoCode;
+        aircraft.ArrivalAirportIcao = arrival.IcaoCode;
+        aircraft.CoordX = departure.CoordX;
+        aircraft.CoordY = departure.CoordY;
+        aircraft.OriginX = (double)departure.CoordX;
+        aircraft.OriginY = (double)departure.CoordY;
+        aircraft.DestinationX = (double)arrival.CoordX;
+        aircraft.DestinationY = (double)arrival.CoordY;
+
+        aircraft.Heading = aircraft.TargetHeading = KinematicsCalculator.CalculateBearing(
+            aircraft.OriginX, aircraft.OriginY, aircraft.DestinationX, aircraft.DestinationY);
+        aircraft.Altitude = 0;
+        aircraft.GroundSpeed = 0;
+        aircraft.TargetAltitude = targetAltitude;
+        aircraft.PlannedDepartureSpeed = departureSpeed;
+        aircraft.IsActive = true;
+        aircraft.HasManualHeadingOverride = false;
+        aircraft.Operations = new FlightOperationsState();
+        aircraft.TrailTimer = 0;
+        aircraft.TrailPoints = [new(aircraft.OriginX, aircraft.OriginY, 0)];
+    }
+
+    public void UpdateAircraftPosition(Aircraft aircraft, WeatherService weather, double dtSeconds,
+        bool followDestination = true, decimal? verticalRate = null)
+    {
+        if (!aircraft.IsActive || dtSeconds <= 0)
             return;
 
+        if (aircraft.PlannedDepartureSpeed is > 0 and { } departureSpeed)
+        {
+            aircraft.GroundSpeed = departureSpeed;
+            aircraft.PlannedDepartureSpeed = null;
+        }
+
         // Auto-navigate towards destination airport/waypoint if set and no manual override
-        if (!aircraft.HasManualHeadingOverride && (aircraft.DestinationX != 0 || aircraft.DestinationY != 0))
+        if (followDestination && !aircraft.HasManualHeadingOverride && (aircraft.DestinationX != 0 || aircraft.DestinationY != 0))
         {
             double distToDest = KinematicsCalculator.CalculateDistance2D(
                 (double)aircraft.CoordX,
@@ -38,11 +70,12 @@ public class AircraftTracker
         aircraft.Heading = KinematicsCalculator.UpdateHeading(aircraft.Heading, aircraft.TargetHeading, dtSeconds);
 
         // Update altitude towards target if assigned
-        if (aircraft.TargetAltitude > 0)
+        if (aircraft.TargetAltitude > 0 || verticalRate.HasValue)
         {
             if (aircraft.Model is { MaxAltitude: > 0 } model)
                 aircraft.TargetAltitude = Math.Min(aircraft.TargetAltitude, model.MaxAltitude);
-            aircraft.Altitude = KinematicsCalculator.UpdateAltitude(aircraft.Altitude, aircraft.TargetAltitude, dtSeconds);
+            aircraft.Altitude = KinematicsCalculator.UpdateAltitude(aircraft.Altitude, aircraft.TargetAltitude,
+                dtSeconds, verticalRate ?? 1500m);
         }
 
         // Kinematics step

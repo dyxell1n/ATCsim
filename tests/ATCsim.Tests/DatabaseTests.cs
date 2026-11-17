@@ -1,4 +1,5 @@
 using ATCsim.Core.Entities;
+using ATCsim.Core.WorldGeneration;
 using ATCsim.Data.Context;
 using ATCsim.Data.Repositories;
 
@@ -87,9 +88,63 @@ public class DatabaseTests : IDisposable
         Assert.NotNull(restored);
         Assert.Equal(99999, restored.Value.Seed);
         Assert.Equal(2.0, restored.Value.TimeScale);
+        Assert.Equal(WorldSector.CurrentTerrainVersion, restored.Value.TerrainVersion);
         Assert.Single(restored.Value.Aircraft);
         Assert.Equal("TST999", restored.Value.Aircraft[0].Callsign);
         Assert.Equal(2, restored.Value.Aircraft[0].TrailPoints.Count);
+    }
+
+    [Fact]
+    public void SessionPersistence_RestoresHoldingPatternRunwayTimerAndAirspace()
+    {
+        var time = DateTime.UnixEpoch.AddMinutes(5);
+        var holding = new Aircraft
+        {
+            Id = 1, Callsign = "HOLD1", Altitude = 5000, GroundSpeed = 210,
+            Operations = new FlightOperationsState
+            {
+                Phase = FlightPhase.Holding, ManualHold = true, HoldingLeg = 2, HoldingAltitude = 5000,
+                HoldingPattern = [new(10, 20), new(15, 20), new(15, 30), new(10, 30)], ArrivalQueuedAt = time
+            }
+        };
+        var landed = new Aircraft
+        {
+            Id = 2, Callsign = "LAND2", IsActive = false,
+            Operations = new FlightOperationsState { Phase = FlightPhase.Landed, RunwayClearAt = time.AddSeconds(105) }
+        };
+        var restricted = new WeatherZone { Id = 4, Name = "Custom restricted area", ZoneType = "RESTRICTED", Radius = 35 };
+        _repoManager.SaveSessionProgress(84920417, time, 4, [], [holding, landed], [restricted]);
+
+        var restored = _repoManager.LoadSavedSession();
+        Assert.NotNull(restored);
+        Assert.Equal(time, restored.Value.SimTime);
+        Assert.Equal(DateTimeKind.Utc, restored.Value.SimTime.Kind);
+        var planes = restored.Value.Aircraft;
+        Assert.True(planes[0].Operations.ManualHold);
+        Assert.Equal(2, planes[0].Operations.HoldingLeg);
+        Assert.Equal(holding.Operations.HoldingPattern, planes[0].Operations.HoldingPattern);
+        Assert.Equal(FlightPhase.Landed, planes[1].Operations.Phase);
+        Assert.Equal(landed.Operations.RunwayClearAt, planes[1].Operations.RunwayClearAt);
+        Assert.False(planes[1].IsActive);
+        Assert.True(Assert.Single(restored.Value.WeatherZones!).BlocksFlight);
+    }
+
+    [Fact]
+    public void SessionPersistence_MigratesOlderSaveWithLegacyTerrainVersion()
+    {
+        _repoManager.SaveSessionProgress(84920417, DateTime.UnixEpoch, 1.0, [], [], []);
+        using (var connection = _repoManager.Context.CreateConnection())
+        using (var command = connection.CreateCommand())
+        {
+            command.CommandText = "ALTER TABLE sim_session DROP COLUMN terrain_version;";
+            command.ExecuteNonQuery();
+        }
+
+        var reopened = new RepositoryManager(_repoManager.Context);
+        var restored = reopened.LoadSavedSession();
+        Assert.NotNull(restored);
+        Assert.Equal(84920417, restored.Value.Seed);
+        Assert.Equal(WorldSector.LegacyTerrainVersion, restored.Value.TerrainVersion);
     }
 
     [Fact]

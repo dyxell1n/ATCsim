@@ -1,4 +1,8 @@
+using ATCsim.Core.Entities;
 using ATCsim.Core.Kinematics;
+using ATCsim.Core.Services;
+using ATCsim.Core.Weather;
+using ATCsim.Core.WorldGeneration;
 
 namespace ATCsim.Tests;
 
@@ -56,8 +60,8 @@ public class KinematicsTests
     public void AircraftTracker_NavigatesTowardsDestination_AndRecordsTrail()
     {
         var tracker = new AircraftTracker();
-        var weather = new ATCsim.Core.Weather.WeatherService();
-        var aircraft = new ATCsim.Core.Entities.Aircraft
+        var weather = new WeatherService();
+        var aircraft = new Aircraft
         {
             CoordX = 100m,
             CoordY = 100m,
@@ -75,5 +79,51 @@ public class KinematicsTests
         // Heading should steer towards 90 deg (East)
         Assert.True(aircraft.Heading > 0, "Aircraft heading should steer towards East destination");
         Assert.NotEmpty(aircraft.TrailPoints);
+    }
+
+    [Fact]
+    public void ScheduledAircraft_StartsAtAirportAndAppearsWhenDeparting()
+    {
+        var tracker = new AircraftTracker();
+        var weather = new WeatherService { CurrentWindSpeed = 0 };
+        var airport = new Airport { IcaoCode = "UKLL", CoordX = 250.125m, CoordY = 350.25m };
+        var destination = new Airport { IcaoCode = "UKBB", CoordX = 700m, CoordY = 350.25m };
+        var aircraft = new Aircraft();
+        AircraftTracker.ScheduleDeparture(aircraft, airport, destination, targetAltitude: 24000m, departureSpeed: 360m);
+
+        tracker.UpdateAircraftPosition(aircraft, weather, 0);
+        Assert.False(aircraft.IsAirborne);
+        Assert.Equal(airport.CoordX, aircraft.CoordX);
+        Assert.Equal(airport.CoordY, aircraft.CoordY);
+        Assert.Equal(0m, aircraft.Altitude);
+        Assert.Equal(0m, aircraft.GroundSpeed);
+
+        tracker.UpdateAircraftPosition(aircraft, weather, 10);
+        Assert.True(aircraft.IsAirborne);
+        Assert.Equal(airport.CoordX + 1m, aircraft.CoordX);
+        Assert.Equal(airport.CoordY, aircraft.CoordY);
+        Assert.Equal(250m, aircraft.Altitude);
+        Assert.Equal(360m, aircraft.GroundSpeed);
+        Assert.Null(aircraft.PlannedDepartureSpeed);
+        Assert.Equal(new TrailPoint((double)airport.CoordX, (double)airport.CoordY, 0), aircraft.TrailPoints[0]);
+    }
+
+    [Fact]
+    public void MovingAirport_KeepsScheduledAircraftAtDeparture()
+    {
+        using var engine = new SimulationEngine();
+        var airport = new Airport { Id = 1, IcaoCode = "UKLL", CoordX = 250m, CoordY = 350m };
+        var destination = new Airport { Id = 2, IcaoCode = "UKBB", CoordX = 700m, CoordY = 350m };
+        var aircraft = new Aircraft();
+        AircraftTracker.ScheduleDeparture(aircraft, airport, destination, targetAltitude: 24000m, departureSpeed: 360m);
+        engine.LoadSector(new WorldSector { Airports = [airport, destination], Aircraft = [aircraft] });
+
+        engine.UpdateAirport(new Airport { Id = airport.Id, IcaoCode = airport.IcaoCode, CoordX = 250m, CoordY = 500m });
+
+        Assert.False(aircraft.IsAirborne);
+        Assert.Equal(250m, aircraft.CoordX);
+        Assert.Equal(500m, aircraft.CoordY);
+        Assert.Equal(new TrailPoint(250, 500, 0), Assert.Single(aircraft.TrailPoints));
+        Assert.Equal(360m, aircraft.PlannedDepartureSpeed);
     }
 }

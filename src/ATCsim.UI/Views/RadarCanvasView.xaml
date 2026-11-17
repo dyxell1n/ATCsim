@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:ATCsim.UI.ViewModels"
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1000">
 
@@ -11,6 +12,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../Resources/AviationIcons.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
             <Style x:Key="RadarMarkerButton" TargetType="Button">
                 <Setter Property="Background" Value="#FFFFFF"/>
                 <Setter Property="BorderBrush" Value="#CED4DA"/>
@@ -86,12 +88,14 @@
     <Grid x:Name="ViewportContainer" 
           Background="#1E382B" 
           ClipToBounds="True" 
+          Focusable="True"
+          FocusVisualStyle="{x:Null}"
+          MouseLeftButtonDown="OnViewportMouseLeftButtonDown"
           MouseWheel="OnMouseWheel"
           MouseRightButtonDown="OnMouseRightButtonDown"
           MouseRightButtonUp="OnMouseRightButtonUp"
           MouseMove="OnMouseMove"
           SizeChanged="OnViewportSizeChanged">
-
         <!-- Transformable Map Surface -->
         <Canvas x:Name="RadarCanvas" Width="1000" Height="700">
             <Canvas.RenderTransform>
@@ -102,7 +106,7 @@
             </Canvas.RenderTransform>
 
             <!-- Seed-generated coastline and terrain -->
-            <Rectangle Width="1000" Height="700" Fill="#1E3A52" IsHitTestVisible="False"/>
+            <Rectangle Width="1000" Height="700" Fill="{x:Static vm:TerrainPatchViewModel.WaterFill}" IsHitTestVisible="False"/>
             <ItemsControl ItemsSource="{Binding Terrain}" IsHitTestVisible="False" Width="1000" Height="700">
                 <ItemsControl.ItemsPanel><ItemsPanelTemplate><Canvas/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate><DataTemplate>
@@ -126,7 +130,7 @@
                        FontFamily="Montserrat, Segoe UI" FontSize="9" FontWeight="Bold" Foreground="#CED4DA" Opacity="0.7"/>
 
             <!-- 3. Dynamic Altitude-Gradient Breadcrumb Trails (Drawn every second per aircraft) -->
-            <ItemsControl ItemsSource="{Binding AllTrailSegments}">
+            <ItemsControl ItemsSource="{Binding AllTrailSegments}" IsHitTestVisible="False">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <Canvas />
@@ -202,6 +206,7 @@
                             <!-- Airport Label Card (Clickable) -->
                             <Button Canvas.Left="38" Canvas.Top="-2" Padding="6,3"
                                     Style="{StaticResource RadarMarkerButton}"
+                                    Visibility="{Binding DataContext.ShowAirportLabels, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibility}}"
                                     Command="{Binding DataContext.SelectAirportCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}" ToolTip="{Binding Name}">
                                 <StackPanel>
@@ -228,6 +233,7 @@
                     <Style TargetType="ContentPresenter">
                         <Setter Property="Canvas.Left" Value="{Binding X}"/>
                         <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                        <Setter Property="Visibility" Value="{Binding IsAirborne, Converter={StaticResource BoolToVisibility}}"/>
                     </Style>
                 </ItemsControl.ItemContainerStyle>
                 <ItemsControl.ItemTemplate>

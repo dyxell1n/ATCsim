@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using ATCsim.UI.ViewModels;
 
 namespace ATCsim.UI.Views;
 
@@ -50,6 +51,16 @@ public partial class RadarCanvasView : UserControl
         MapTranslateTransform.X = newTransX;
         MapTranslateTransform.Y = newTransY;
 
+        e.Handled = true;
+    }
+
+    private void OnViewportMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        ViewportContainer.Focus();
+        if (DataContext is RadarViewModel radar)
+        {
+            radar.ClearSelectionCommand.Execute(null);
+        }
         e.Handled = true;
     }
 

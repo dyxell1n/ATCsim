@@ -16,6 +16,7 @@ public class AircraftTrackViewModel : ViewModelBase
     private decimal _groundSpeed;
     private bool _isSelected;
     private bool _hasConflict;
+    private bool _isAirborne;
 
     public Aircraft Aircraft { get; }
     public string Callsign => Aircraft.Callsign;
@@ -78,6 +79,12 @@ public class AircraftTrackViewModel : ViewModelBase
         set => SetProperty(ref _hasConflict, value);
     }
 
+    public bool IsAirborne
+    {
+        get => _isAirborne;
+        private set => SetProperty(ref _isAirborne, value);
+    }
+
     public string FlightLevelText => $"FL{(int)(Altitude / 100)}";
 
     // Direction vector and 34px hit target share the same center.
@@ -97,6 +104,7 @@ public class AircraftTrackViewModel : ViewModelBase
         Heading = Aircraft.Heading;
         Altitude = Aircraft.Altitude;
         GroundSpeed = Aircraft.GroundSpeed;
+        IsAirborne = Aircraft.IsAirborne;
     }
 }
 
@@ -128,15 +136,29 @@ public class AirportMarkerViewModel : ViewModelBase
 
 public class TerrainPatchViewModel
 {
+    public static Brush WaterFill { get; } = CreateFill("#1E3A52");
     public PointCollection Points { get; }
     public Brush Fill { get; }
     public TerrainPatchViewModel(TerrainPatch patch)
     {
         Points = new PointCollection(patch.Points.Select(p => new System.Windows.Point(p.X, p.Y)));
         Points.Freeze();
-        Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(
-            patch.Kind == "LAND" ? "#284E38" : "#37684B"));
-        Fill.Freeze();
+        string color = patch.Kind switch
+        {
+            "LAND" => "#284E38",
+            "SAND" => "#9E8758",
+            "MOUNTAIN" => "#615C52",
+            "MOUNTAIN_RIDGE" => "#888074",
+            _ => "#37684B"
+        };
+        Fill = patch.Kind == "RIVER" ? WaterFill : CreateFill(color);
+    }
+
+    private static Brush CreateFill(string color)
+    {
+        var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
+        brush.Freeze();
+        return brush;
     }
 }
 
@@ -214,6 +236,7 @@ public class RadarViewModel : ViewModelBase
     }
 
     private readonly SimulationEngine _engine;
+    private bool _showAirportLabels = true;
     private AircraftTrackViewModel? _selectedTrack;
     private AirportMarkerViewModel? _selectedAirport;
 
@@ -223,6 +246,12 @@ public class RadarViewModel : ViewModelBase
     public ObservableCollection<TerrainPatchViewModel> Terrain { get; } = [];
     public ObservableCollection<WeatherZoneViewModel> WeatherZones { get; } = [];
     public ObservableCollection<TrailSegmentViewModel> AllTrailSegments { get; } = [];
+
+    public bool ShowAirportLabels
+    {
+        get => _showAirportLabels;
+        set => SetProperty(ref _showAirportLabels, value);
+    }
 
     public AircraftTrackViewModel? SelectedTrack
     {
@@ -258,14 +287,16 @@ public class RadarViewModel : ViewModelBase
     public event Action<Airport?>? AirportSelected;
     public ICommand SelectTrackCommand { get; }
     public ICommand SelectAirportCommand { get; }
+    public ICommand ClearSelectionCommand { get; }
 
     public RadarViewModel(SimulationEngine engine)
     {
         _engine = engine;
         SelectTrackCommand = new RelayCommand(p =>
         {
-            if (p is AircraftTrackViewModel track)
+            if (p is AircraftTrackViewModel { IsAirborne: true } track)
             {
+                SelectedAirport = null;
                 SelectedTrack = track;
             }
         });
@@ -274,13 +305,15 @@ public class RadarViewModel : ViewModelBase
         {
             if (p is AirportMarkerViewModel marker)
             {
+                SelectedTrack = null;
                 SelectedAirport = marker;
             }
-            else if (p is Airport airport)
-            {
-                var markerItem = Airports.FirstOrDefault(a => a.Airport.Id == airport.Id || a.IcaoCode == airport.IcaoCode);
-                if (markerItem != null) SelectedAirport = markerItem;
-            }
+        });
+
+        ClearSelectionCommand = new RelayCommand(() =>
+        {
+            SelectedTrack = null;
+            SelectedAirport = null;
         });
     }
 
@@ -317,13 +350,14 @@ public class RadarViewModel : ViewModelBase
             Tracks.Add(tvm);
         }
 
-        SelectedTrack = Tracks.FirstOrDefault();
-        SelectedAirport = Airports.FirstOrDefault();
+        SelectedTrack = Tracks.FirstOrDefault(track => track.IsAirborne);
+        SelectedAirport = null;
         UpdateTrailSegments();
     }
 
     public void RefreshAirportsList(IReadOnlyList<Airport> airports)
     {
+        string? selectedIcao = SelectedAirport?.IcaoCode;
         Airports.Clear();
         foreach (var apt in airports)
         {
@@ -333,6 +367,7 @@ public class RadarViewModel : ViewModelBase
                 Subtitle = $"Elevation: 500ft | Capacity: {apt.MaxCapacity}"
             });
         }
+        SelectedAirport = Airports.FirstOrDefault(airport => airport.IcaoCode == selectedIcao);
     }
 
     public void SyncPositions()
@@ -341,6 +376,7 @@ public class RadarViewModel : ViewModelBase
         {
             track.UpdateFromModel();
         }
+        if (SelectedTrack is { IsAirborne: false }) SelectedTrack = null;
         UpdateTrailSegments();
     }
 
@@ -349,6 +385,7 @@ public class RadarViewModel : ViewModelBase
         AllTrailSegments.Clear();
         foreach (var track in Tracks)
         {
+            if (!track.IsAirborne) continue;
             var pts = track.Aircraft.TrailPoints;
             for (int i = 0; i < pts.Count - 1; i++)
             {

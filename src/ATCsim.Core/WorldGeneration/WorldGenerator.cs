@@ -3,7 +3,7 @@ using ATCsim.Core.Kinematics;
 
 namespace ATCsim.Core.WorldGeneration;
 
-public class WorldGenerator : IWorldGenerator
+public partial class WorldGenerator : IWorldGenerator
 {
     public const int MapWidth = 1000;
     public const int MapHeight = 700;
@@ -13,49 +13,7 @@ public class WorldGenerator : IWorldGenerator
         var random = new SeedRandom(seed);
         var sector = new WorldSector { Seed = seed };
 
-        // �������� ����: ���� ����������� ���� ������.
-        var land = new List<MapPoint>
-        {
-            new(0, 0),
-            new(MapWidth, 0)
-        };
-
-        for (int x = MapWidth; x >= 0; x -= 125)
-        {
-            land.Add(new MapPoint(x, random.Next(490, 651)));
-        }
-
-        sector.Terrain.Add(new TerrainPatch("LAND", land));
-
-        // ��������� ������ �������.
-        for (int i = 0; i < 5; i++)
-        {
-            double centerX = random.Next(160, 841);
-            double centerY = random.Next(130, 381);
-            double radiusX = random.Next(70, 151);
-            double radiusY = random.Next(40, 91);
-
-            var points = new List<MapPoint>();
-
-            for (int vertex = 0; vertex < 12; vertex++)
-            {
-                double angle = vertex * Math.PI / 6;
-                double scale = random.Next(75, 101) / 100.0;
-
-                double x = centerX
-                    + Math.Cos(angle) * radiusX * scale;
-
-                double y = centerY
-                    + Math.Sin(angle) * radiusY * scale;
-
-                points.Add(new MapPoint(
-                    Math.Round(x, 3),
-                    Math.Round(y, 3)));
-            }
-
-            sector.Terrain.Add(
-                new TerrainPatch("HIGHLAND", points));
-        }
+        var coastline = new Coastline(random);
 
         // ����� ��������, � ������������ ��������.
         (string Code, string Name)[] airports =
@@ -67,16 +25,12 @@ public class WorldGenerator : IWorldGenerator
             ("UKHH", "Kharkiv International")
         ];
 
-        // ����� �������� ����� ������ ������.
-        // �� ������� ������� �� ���� ���������� 110 �������.
-        var cells = Enumerable.Range(0, 12).ToList();
-
+        var airportSites = FindInlandAirportSites(coastline, random);
         for (int i = 0; i < airports.Length; i++)
         {
-            int index = random.Next(0, cells.Count);
-            int cell = cells[index];
-
-            cells.RemoveAt(index);
+            int index = random.Next(0, airportSites.Count);
+            var site = airportSites[index];
+            airportSites.RemoveAt(index);
 
             int headingNumber = random.Next(1, 37);
             int reciprocal = (headingNumber + 17) % 36 + 1;
@@ -87,11 +41,8 @@ public class WorldGenerator : IWorldGenerator
                 IcaoCode = airports[i].Code,
                 Name = airports[i].Name,
 
-                CoordX = 130 + cell % 4 * 240
-                    + random.Next(-20, 21),
-
-                CoordY = 100 + cell / 4 * 150
-                    + random.Next(-20, 21),
+                CoordX = (decimal)site.X,
+                CoordY = (decimal)site.Y,
 
                 MaxCapacity = random.Next(10, 41),
 
@@ -126,16 +77,8 @@ public class WorldGenerator : IWorldGenerator
             sector.Airports.Add(airport);
         }
 
-        // ���������� �����.
-        int waypointCount = random.Next(8, 15);
-
-        for (int i = 0; i < waypointCount; i++)
-        {
-            sector.Waypoints.Add(new Waypoint(
-                $"WP{i + 1:D2}",
-                random.Next(60, 941),
-                random.Next(60, 641)));
-        }
+        GenerateTerrain(sector, coastline, random);
+        GenerateWaypoints(sector, random);
 
         // ������� �� �������� ����.
         string[] zoneTypes =
@@ -147,7 +90,7 @@ public class WorldGenerator : IWorldGenerator
 
         for (int i = 0; i < zoneTypes.Length; i++)
         {
-            sector.WeatherZones.Add(new WeatherZone
+            var zone = new WeatherZone
             {
                 Id = i + 1,
                 Name = $"{zoneTypes[i]} {i + 1:D2}",
@@ -160,7 +103,26 @@ public class WorldGenerator : IWorldGenerator
                 MinAltitude = 0,
                 MaxAltitude = random.Next(18, 37) * 1000,
                 IsActive = true
-            });
+            };
+            if (zone.BlocksFlight && !ClearOfAirportApproaches(zone.CenterX, zone.CenterY))
+            {
+                // Keep the main seed sequence independent of how many possible centers are rejected.
+                var zoneRandom = new SeedRandom(seed ^ ((long)(i + 1) << 32));
+                bool found = false;
+                for (int attempt = 0; attempt < 64; attempt++)
+                {
+                    zone.CenterX = zoneRandom.Next(100, 901);
+                    zone.CenterY = zoneRandom.Next(100, 601);
+                    if (!(found = ClearOfAirportApproaches(zone.CenterX, zone.CenterY))) continue;
+                    break;
+                }
+                if (!found) continue;
+            }
+            sector.WeatherZones.Add(zone);
+
+            bool ClearOfAirportApproaches(decimal x, decimal y) => sector.Airports.All(airport =>
+                KinematicsCalculator.CalculateDistance2D((double)x, (double)y, (double)airport.CoordX,
+                    (double)airport.CoordY) > (double)zone.Radius + 20);
         }
 
         var models = AircraftModelCatalog.All;
@@ -184,19 +146,9 @@ public class WorldGenerator : IWorldGenerator
             var departure = sector.Airports[departureIndex];
             var arrival = sector.Airports[arrivalIndex];
 
-            decimal progress = random.Next(15, 76) / 100m;
-
-            decimal x = departure.CoordX
-                + (arrival.CoordX - departure.CoordX) * progress;
-
-            decimal y = departure.CoordY
-                + (arrival.CoordY - departure.CoordY) * progress;
-
-            double heading = KinematicsCalculator.CalculateBearing(
-                (double)x,
-                (double)y,
-                (double)arrival.CoordX,
-                (double)arrival.CoordY);
+            // Keep the draw reserved for the former initial route progress so
+            // aircraft routes and performance draws keep the same seed order.
+            _ = random.Next(15, 76);
 
             decimal altitude = 14000
                 + i * 2000
@@ -211,43 +163,32 @@ public class WorldGenerator : IWorldGenerator
             if (model.Category == "LIGHT")
                 altitude = definition.DefaultAltitude + altitude % 2000;
 
-            sector.Aircraft.Add(new Aircraft
+            var aircraft = new Aircraft
             {
                 Id = i + 1,
                 Callsign = callsigns[i],
                 ModelId = model.Id,
                 Model = model,
-
-                CoordX = x,
-                CoordY = y,
-
-                Altitude = altitude,
-                TargetAltitude = altitude,
-
-                Heading = heading,
-                TargetHeading = heading,
-
-                GroundSpeed = model.Id <= 4 ? speedSample : Math.Round(model.CruiseSpeed * speedSample / 430m),
-                FuelRemaining = model.Id <= 4 ? fuelSample : model.FuelCapacity * (0.4m + (fuelSample - 3000m) / 10000m),
-                IsActive = true,
-
-                DepartureAirportIcao = departure.IcaoCode,
-                ArrivalAirportIcao = arrival.IcaoCode,
-
-                OriginX = (double)departure.CoordX,
-                OriginY = (double)departure.CoordY,
-
-                DestinationX = (double)arrival.CoordX,
-                DestinationY = (double)arrival.CoordY,
-
-                TrailPoints =
-                [
-                    new((double)x, (double)y, altitude)
-                ]
-            });
+                FuelRemaining = model.Id <= 4 ? fuelSample : model.FuelCapacity * (0.4m + (fuelSample - 3000m) / 10000m)
+            };
+            decimal departureSpeed = model.Id <= 4 ? speedSample : Math.Round(model.CruiseSpeed * speedSample / 430m);
+            AircraftTracker.ScheduleDeparture(aircraft, departure, arrival, altitude, departureSpeed);
+            sector.Aircraft.Add(aircraft);
         }
 
         return sector;
+    }
+
+    private static void GenerateWaypoints(WorldSector sector, SeedRandom random)
+    {
+        int waypointCount = random.Next(8, 15);
+        for (int i = 0; i < waypointCount; i++)
+        {
+            sector.Waypoints.Add(new Waypoint(
+                $"WP{i + 1:D2}",
+                random.Next(60, 941),
+                random.Next(60, 641)));
+        }
     }
 
     // ������������� ��������� SplitMix64.

@@ -14,6 +14,7 @@ public class SimulationEngine : IDisposable
 {
     private readonly System.Timers.Timer _timer;
     private readonly object _lock = new();
+    private readonly AirportTrafficControl _trafficControl;
 
     public long CurrentSeed { get; private set; } = 84920417;
     public bool IsRunning { get; private set; }
@@ -35,16 +36,19 @@ public class SimulationEngine : IDisposable
 
     public SimulationEngine()
     {
+        _trafficControl = new(Radio, Weather, CollisionDetector, () => SimTime);
         _timer = new System.Timers.Timer(100); // 10 ticks per second (100ms)
         _timer.Elapsed += OnTimerTick;
         CollisionDetector.SeparationAlertTriggered += alert => ConflictDetected?.Invoke(alert);
     }
 
-    public void LoadSector(WorldSector sector)
+    public void LoadSector(WorldSector sector, DateTime? simTime = null)
     {
         lock (_lock)
         {
             CurrentSeed = sector.Seed;
+            SimTime = simTime ?? DateTime.UtcNow;
+            _trafficControl.Reset();
             Airports = [.. sector.Airports];
             ActiveAircraft = [.. sector.Aircraft];
             WeatherZones = [.. sector.WeatherZones];
@@ -52,7 +56,7 @@ public class SimulationEngine : IDisposable
             Weather.ActiveZones = WeatherZones;
         }
 
-        Radio.AddSystemLog("ATC RADAR", $"Airspace sector loaded (Seed: {CurrentSeed}). {Airports.Count} airports, {ActiveAircraft.Count} active airborne tracks.");
+        Radio.AddSystemLog("ATC RADAR", $"Airspace sector loaded (Seed: {CurrentSeed}). {Airports.Count} airports, {ActiveAircraft.Count(a => a.IsAirborne)} active airborne tracks.");
         StateUpdated?.Invoke();
     }
 
@@ -63,7 +67,10 @@ public class SimulationEngine : IDisposable
             ActiveAircraft.Add(aircraft);
         }
 
-        Radio.AddSystemLog("ATC RADAR", $"RADAR CONTACT: {aircraft.Callsign} ({aircraft.Model?.ModelName ?? "B738"}) entered sector at FL{(int)(aircraft.Altitude / 100)}.");
+        string message = aircraft.PlannedDepartureSpeed.HasValue
+            ? $"{aircraft.Callsign} is awaiting departure at {aircraft.DepartureAirportIcao}."
+            : $"RADAR CONTACT: {aircraft.Callsign} ({aircraft.Model?.ModelName ?? "B738"}) entered sector at FL{(int)(aircraft.Altitude / 100)}.";
+        Radio.AddSystemLog("ATC RADAR", message);
         StateUpdated?.Invoke();
     }
 
@@ -102,6 +109,20 @@ public class SimulationEngine : IDisposable
                 existing.CoordY = airport.CoordY;
                 existing.MaxCapacity = airport.MaxCapacity;
                 existing.Runways = airport.Runways;
+
+                foreach (var aircraft in ActiveAircraft)
+                {
+                    if (aircraft.PlannedDepartureSpeed is not { } speed ||
+                        (aircraft.DepartureAirportIcao != existing.IcaoCode && aircraft.ArrivalAirportIcao != existing.IcaoCode))
+                    {
+                        continue;
+                    }
+
+                    var departure = Airports.Find(a => a.IcaoCode == aircraft.DepartureAirportIcao);
+                    var arrival = Airports.Find(a => a.IcaoCode == aircraft.ArrivalAirportIcao);
+                    if (departure != null && arrival != null)
+                        AircraftTracker.ScheduleDeparture(aircraft, departure, arrival, aircraft.TargetAltitude, speed);
+                }
             }
         }
 
@@ -111,16 +132,22 @@ public class SimulationEngine : IDisposable
 
     public void Start()
     {
-        IsRunning = true;
-        _timer.Start();
+        lock (_lock)
+        {
+            IsRunning = true;
+            _timer.Start();
+        }
         Radio.AddSystemLog("SIM ENGINE", "Simulation running (realtime tracking active).");
         StateUpdated?.Invoke();
     }
 
     public void Pause()
     {
-        IsRunning = false;
-        _timer.Stop();
+        lock (_lock)
+        {
+            IsRunning = false;
+            _timer.Stop();
+        }
         Radio.AddSystemLog("SIM ENGINE", "Simulation paused.");
         StateUpdated?.Invoke();
     }
@@ -140,26 +167,58 @@ public class SimulationEngine : IDisposable
 
     private void OnTimerTick(object? sender, System.Timers.ElapsedEventArgs e)
     {
-        if (!IsRunning) return;
-
-        // Visual simulation step: scaled so aircraft move smoothly across the map
-        double dtSeconds = 0.1 * 10.0 * TimeScale;
-
         lock (_lock)
         {
             if (!IsRunning) return;
-            SimTime = SimTime.AddSeconds(dtSeconds);
-
-            foreach (var aircraft in ActiveAircraft)
-            {
-                Tracker.UpdateAircraftPosition(aircraft, Weather, dtSeconds);
-            }
-
-            CollisionDetector.CheckSeparation(ActiveAircraft);
+            AdvanceTraffic(TimeScale);
         }
 
         StateUpdated?.Invoke();
     }
+
+    public void Advance(double seconds)
+    {
+        if (!double.IsFinite(seconds) || seconds <= 0) throw new ArgumentOutOfRangeException(nameof(seconds));
+        lock (_lock) AdvanceTraffic(seconds);
+        StateUpdated?.Invoke();
+    }
+
+    private void AdvanceTraffic(double seconds)
+    {
+        while (seconds > 0)
+        {
+            double step = Math.Min(seconds, 1);
+            seconds -= step;
+            SimTime = SimTime.AddSeconds(step);
+            foreach (var aircraft in ActiveAircraft)
+                _trafficControl.Update(aircraft, ActiveAircraft, Airports, SimTime, step, Tracker);
+        }
+        CollisionDetector.CheckSeparation(ActiveAircraft);
+    }
+
+    public void VectorAircraft(Aircraft aircraft, double heading)
+    {
+        if (!double.IsFinite(heading)) throw new ArgumentOutOfRangeException(nameof(heading));
+        lock (_lock) _trafficControl.SetHeading(aircraft, ArrivalAirport(aircraft), heading);
+    }
+
+    public void ResumeAircraftRoute(Aircraft aircraft)
+    {
+        lock (_lock) _trafficControl.ResumeRoute(aircraft, ArrivalAirport(aircraft));
+    }
+
+    public void HoldAircraft(Aircraft aircraft)
+    {
+        lock (_lock)
+            if (ArrivalAirport(aircraft) != null) _trafficControl.RequestHolding(aircraft);
+    }
+
+    public void ChangeAircraftAltitude(Aircraft aircraft, decimal altitude)
+    {
+        lock (_lock) _trafficControl.ChangeAltitude(aircraft, ArrivalAirport(aircraft), altitude);
+    }
+
+    private Airport? ArrivalAirport(Aircraft aircraft) => Airports.Find(airport => airport.IcaoCode == aircraft.ArrivalAirportIcao);
 
     public void Dispose()
     {

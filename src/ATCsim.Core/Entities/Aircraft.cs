@@ -20,6 +20,9 @@ public class Aircraft
     public decimal GroundSpeed { get; set; } // knots
     public double TargetHeading { get; set; }
     public decimal TargetAltitude { get; set; }
+    public decimal? PlannedDepartureSpeed { get; set; } // knots, while waiting to depart
+    public bool IsAirborne => IsActive && (Altitude > 0 || GroundSpeed > 0);
+    public FlightOperationsState Operations { get; set; } = new();
 
     // Route and Navigation Destination
     public string DepartureAirportIcao { get; set; } = "UKLL";

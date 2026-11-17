@@ -16,6 +16,9 @@ public class CollisionDetector
 
     public event Action<CollisionAlert>? SeparationAlertTriggered;
 
+    public bool CanDepart(Aircraft aircraft, IReadOnlyList<Aircraft> traffic) =>
+        !traffic.Any(other => other != aircraft && other.IsAirborne && IsLossOfSeparation(aircraft, other, out _, out _));
+
     public List<CollisionAlert> CheckSeparation(IReadOnlyList<Aircraft> aircraftList)
     {
         var alerts = new List<CollisionAlert>();
@@ -23,20 +26,12 @@ public class CollisionDetector
         for (int i = 0; i < aircraftList.Count; i++)
         {
             var a1 = aircraftList[i];
-            if (!a1.IsActive) continue;
+            if (!a1.IsAirborne) continue;
 
             for (int j = i + 1; j < aircraftList.Count; j++)
             {
                 var a2 = aircraftList[j];
-                if (!a2.IsActive) continue;
-
-                var p1 = new Vector2D((double)a1.CoordX, (double)a1.CoordY);
-                var p2 = new Vector2D((double)a2.CoordX, (double)a2.CoordY);
-
-                double hDist = p1.DistanceTo(p2);
-                decimal vDist = Math.Abs(a1.Altitude - a2.Altitude);
-
-                if (hDist < HorizontalSeparationMinNm && vDist < VerticalSeparationMinFt)
+                if (a2.IsAirborne && IsLossOfSeparation(a1, a2, out double hDist, out decimal vDist))
                 {
                     var alert = new CollisionAlert(a1, a2, Math.Round(hDist, 2), vDist);
                     alerts.Add(alert);
@@ -46,5 +41,14 @@ public class CollisionDetector
         }
 
         return alerts;
+    }
+
+    private static bool IsLossOfSeparation(Aircraft first, Aircraft second, out double horizontal, out decimal vertical)
+    {
+        var firstPosition = new Vector2D((double)first.CoordX, (double)first.CoordY);
+        var secondPosition = new Vector2D((double)second.CoordX, (double)second.CoordY);
+        horizontal = firstPosition.DistanceTo(secondPosition);
+        vertical = Math.Abs(first.Altitude - second.Altitude);
+        return horizontal < HorizontalSeparationMinNm && vertical < VerticalSeparationMinFt;
     }
 }
