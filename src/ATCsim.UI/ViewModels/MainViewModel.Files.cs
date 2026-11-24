@@ -35,7 +35,7 @@ public partial class MainViewModel
         dialog.Title = $"{(import ? "Import" : "Export")} {label.ToLowerInvariant()}";
         dialog.DefaultExt = "." + extension;
         dialog.Filter = $"{label} (*.{extension})|*.{extension}|JSON (*.json)|*.json";
-        if (import) dialog.InitialDirectory = Path.Combine(AppContext.BaseDirectory, preset ? "Presets" : "Saves");
+        if (import) dialog.InitialDirectory = BundledScenarios.GetImportDirectory(preset);
         if (dialog.ShowDialog(Application.Current.MainWindow) != true) return;
 
         bool resume = _engine.IsRunning;

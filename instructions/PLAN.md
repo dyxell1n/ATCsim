@@ -178,7 +178,7 @@ Any LLM or developer working on this codebase must consult this document before 
 
 - [ ] Defect resolution and bug scrub.
 - [ ] End-to-end regression validation.
-- [ ] Update root `README.md` with build and execution instructions.
+- [x] Update root `README.md` with build and execution instructions.
 - [ ] Prepare demonstration scenarios and technical presentation.
 - [ ] Verify each team member can defend their code and commits.
 

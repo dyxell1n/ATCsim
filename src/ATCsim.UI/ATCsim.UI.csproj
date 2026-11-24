@@ -7,8 +7,10 @@
 
   <ItemGroup>
     <Resource Include="Assets\logo.png" />
-    <Content Include="Presets\*.atcpreset" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="Saves\*.atcsave" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Presets\*.atcpreset" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" />
+    <Content Include="Saves\*.atcsave" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" />
+    <EmbeddedResource Include="Presets\*.atcpreset" LogicalName="Examples/Presets/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Saves\*.atcsave" LogicalName="Examples/Saves/%(Filename)%(Extension)" />
   </ItemGroup>
 
   <PropertyGroup>

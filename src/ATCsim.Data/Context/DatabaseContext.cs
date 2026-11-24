@@ -4,10 +4,13 @@ namespace ATCsim.Data.Context;
 
 /// <summary>
 /// Provides SQLite database connections and connection string management.
-/// Places atcsim.db directly in application root directory for easy inspection.
+/// Keeps new local databases in the user's application data directory.
 /// </summary>
 public class DatabaseContext
 {
+    public static string LocalDataDirectory { get; } =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ATCsim");
+
     public string DbPath { get; }
     public string ConnectionString { get; }
 
@@ -15,8 +18,17 @@ public class DatabaseContext
     {
         if (string.IsNullOrWhiteSpace(dbPath))
         {
-            string baseDir = AppContext.BaseDirectory;
-            DbPath = Path.Combine(baseDir, "atcsim.db");
+            string previousDatabase = Path.Combine(AppContext.BaseDirectory, "atcsim.db");
+            if (File.Exists(previousDatabase))
+            {
+                DbPath = previousDatabase;
+            }
+            else
+            {
+                string databaseDirectory = Path.Combine(LocalDataDirectory, "Data");
+                Directory.CreateDirectory(databaseDirectory);
+                DbPath = Path.Combine(databaseDirectory, "atcsim.db");
+            }
         }
         else
         {
