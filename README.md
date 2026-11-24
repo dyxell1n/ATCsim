@@ -104,7 +104,6 @@ dotnet publish src/ATCsim.UI/ATCsim.UI.csproj -c Release -r win-x64 --self-conta
 
 До пасажирських Boeing 737-800, Airbus A320/A321 та Embraer E195 додано:
 
-- **Ilyushin Il-76TD (IL76)** — вантажний літак.
 - **Bombardier Global Express (GLEX)** — бізнес-джет.
 - **Cirrus SR22 (SR22)** — легкий гвинтовий літак.
 - **Antonov Ан-225 «Мрія» (A225)** — важкий транспортний літак. На радарі він має блакитну лінію курсу та український прапор біля назви.
