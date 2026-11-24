@@ -8,7 +8,7 @@ public class AircraftModelCatalogTests
     [Fact]
     public void Catalog_KeepsStableDatabaseIdsAndCreatesIndependentModels()
     {
-        string[] expectedIcons = ["B738", "A320", "E195", "A321", "IL76", "GLEX", "SR22"];
+        string[] expectedIcons = ["B738", "A320", "E195", "A321", "IL76", "GLEX", "SR22", "A225"];
         Assert.Equal(expectedIcons, AircraftModelCatalog.All.Select(model => model.IconType));
         Assert.Equal(Enumerable.Range(1, expectedIcons.Length), AircraftModelCatalog.All.Select(model => model.Id));
 

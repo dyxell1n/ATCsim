@@ -16,6 +16,8 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <None Include="..\..\src\ATCsim.UI\Saves\Eight-Airports.atcsave" Link="Eight-Airports.atcsave" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\ATCsim.UI\Presets\Dense-256.atcpreset" Link="Dense-256.atcpreset" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

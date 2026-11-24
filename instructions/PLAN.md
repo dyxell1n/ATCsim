@@ -100,13 +100,16 @@ Any LLM or developer working on this codebase must consult this document before 
   - [x] Generation of dynamic weather zones (storm fronts, turbulence).
   - [x] Varied coastlines, islands, rivers, coastal sand, and mountain terrain.
 - [ ] Kinematics Simulation Engine (`ATCsim.Core.Kinematics`, Owner: O. Bezkorovainyi):
-  - [ ] Fixed-timestep simulation loop (`SimulationLoop`) with speed multipliers (1x, 2x, 4x, pause).
+  - [x] Fixed-timestep simulation loop (`SimulationLoop`) with speed multipliers (1x, 2x, 4x, 8x, 16x, pause).
   - [ ] Aircraft spatial coordinate integration based on groundspeed, magnetic heading, altitude, and wind vectors.
   - [ ] Standard turn rate calculations and vertical climb/descent profiles.
 - [ ] Separation & Conflict Detector (`ATCsim.Core.Safety`, Owner: O. Bezkorovainyi):
-  - [ ] Real-time pairwise distance calculation (horizontal < 5 NM, vertical < 1000 ft).
+  - [x] Real-time pairwise distance calculation (horizontal < 5 NM, vertical < 1000 ft).
   - [ ] Alert generation and visual radar canvas pulse for conflicting tracks.
   - [x] Shared runway separation for departures and arrivals, holding patterns, missed approaches, and airspace avoidance.
+  - [x] Predictive traffic separation and escape from newly activated hazard zones.
+  - [x] Plan descent before terminal arrival and protect reciprocal, parallel and crossing runway operations.
+  - [x] Estimate route fuel and refuel parked aircraft before departure.
 - [ ] Radio Exchange Subsystem (`ATCsim.Core.Radio`, Owner: M. Borkov):
   - [ ] Controller dispatch command pipeline (heading, altitude, speed, runway assignments).
   - [ ] Synthetic pilot readback generator conforming to ICAO phraseology.
@@ -116,6 +119,11 @@ Any LLM or developer working on this codebase must consult this document before 
   - [x] Render aircraft silhouettes directly on the map with transparent hit targets and circular hover, selection and conflict indicators.
   - [x] Hide parked aircraft and clear airport or aircraft selection on empty radar clicks.
   - [x] Toggle airport labels from the View menu.
+  - [x] Show runway layout, moving aircraft and parking at the selected airport.
+  - [x] Clear radar trails five simulated seconds after landing.
+  - [x] Edit multiple runway directions per airport and load the bundled eight-airport ground traffic save.
+  - [x] Import and export portable map saves and aircraft presets from File, including a 256-aircraft example.
+  - [x] Cache radar trails and check dense-sector conflicts in parallel.
   - [ ] Track inspection: selection of active aircraft, command inputs, flight strip updates.
   - [ ] Dynamic path rendering: altitude gradient historic trail, dashed forward projection vector.
 
@@ -129,7 +137,7 @@ Any LLM or developer working on this codebase must consult this document before 
 - [ ] Unit Tests (`ATCsim.Tests`):
   - [x] World generation determinism: identical `world_seed` guarantees identical coordinates.
   - [ ] Kinematics accuracy: coordinate delta matches groundspeed and wind drift vectors.
-  - [ ] Conflict detection boundaries: verify trigger on 4.9 NM vs no trigger on 5.1 NM.
+  - [x] Conflict detection boundaries: verify the strict 5 NM / 1000 ft thresholds and parity with all-pairs checks in dense traffic.
   - [ ] Input validation: reject out-of-range headings (<0 or >=360) and invalid altitudes.
 - [ ] Integration Tests:
   - [ ] SQLite database read/write cycles, foreign key cascade behaviors.

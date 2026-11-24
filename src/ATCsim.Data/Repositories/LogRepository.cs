@@ -1,5 +1,6 @@
 using ATCsim.Core.Entities;
 using ATCsim.Data.Context;
+using Microsoft.Data.Sqlite;
 
 namespace ATCsim.Data.Repositories;
 
@@ -8,7 +9,13 @@ public class LogRepository(DatabaseContext context)
     public void AddCommunicationLog(CommunicationLog log)
     {
         using var conn = context.CreateConnection();
+        AddCommunicationLog(conn, null, log);
+    }
+
+    private static void AddCommunicationLog(SqliteConnection conn, SqliteTransaction? transaction, CommunicationLog log)
+    {
         using var cmd = conn.CreateCommand();
+        cmd.Transaction = transaction;
         cmd.CommandText = @"
             INSERT INTO communication_logs (airport_id, aircraft_id, sender_type, message, timestamp)
             VALUES (@aid, @acid, @sender, @msg, @ts);
@@ -19,6 +26,15 @@ public class LogRepository(DatabaseContext context)
         cmd.Parameters.AddWithValue("@msg", log.Message);
         cmd.Parameters.AddWithValue("@ts", log.Timestamp.ToString("o"));
         cmd.ExecuteNonQuery();
+    }
+
+    public void AddBatch(IReadOnlyList<CommunicationLog> radio, IReadOnlyList<SimLog> alerts)
+    {
+        using var conn = context.CreateConnection();
+        using var transaction = conn.BeginTransaction();
+        foreach (var log in radio) AddCommunicationLog(conn, transaction, log);
+        foreach (var alert in alerts) AddSimLog(conn, transaction, alert);
+        transaction.Commit();
     }
 
     public List<CommunicationLog> GetCommunicationLogs(int limit = 50)
@@ -57,7 +73,13 @@ public class LogRepository(DatabaseContext context)
     public void AddSimLog(SimLog log)
     {
         using var conn = context.CreateConnection();
+        AddSimLog(conn, null, log);
+    }
+
+    private static void AddSimLog(SqliteConnection conn, SqliteTransaction? transaction, SimLog log)
+    {
         using var cmd = conn.CreateCommand();
+        cmd.Transaction = transaction;
         cmd.CommandText = @"
             INSERT INTO sim_logs (world_seed, event_type, flight_id, aircraft_id, airport_id, details, sim_time, created_at)
             VALUES (@seed, @ev, @fid, @acid, @aid, @details, @simTime, @created);

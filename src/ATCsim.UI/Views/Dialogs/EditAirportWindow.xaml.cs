@@ -1,38 +1,54 @@
+using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Controls;
 using ATCsim.Core.Entities;
 
 namespace ATCsim.UI.Views.Dialogs;
 
 public partial class EditAirportWindow : Window
 {
-    private readonly Airport _targetAirport;
+    private readonly ObservableCollection<Runway> _runways;
+    public Airport EditedAirport { get; }
 
     public EditAirportWindow(Airport airport)
     {
         InitializeComponent();
-        _targetAirport = airport;
+        EditedAirport = new Airport
+        {
+            Id = airport.Id, IcaoCode = airport.IcaoCode, Name = airport.Name,
+            CoordX = airport.CoordX, CoordY = airport.CoordY, MaxCapacity = airport.MaxCapacity,
+            CreatedAt = airport.CreatedAt,
+            Runways = airport.Runways.Select(runway => new Runway
+            {
+                Id = runway.Id, AirportId = runway.AirportId, Designator = runway.Designator,
+                Angle = runway.Angle, Length = runway.Length, IsAvailable = runway.IsAvailable
+            }).ToList()
+        };
 
         IcaoBox.Text = airport.IcaoCode;
         NameBox.Text = airport.Name;
-        CoordXBox.Text = ((int)airport.CoordX).ToString();
-        CoordYBox.Text = ((int)airport.CoordY).ToString();
+        CoordXBox.Text = airport.CoordX.ToString();
+        CoordYBox.Text = airport.CoordY.ToString();
         CapacityBox.Text = airport.MaxCapacity.ToString();
 
-        var rwy = airport.Runways.FirstOrDefault();
-        if (rwy != null)
-        {
-            RwyDesignatorBox.Text = rwy.Designator;
-            RwyAngleBox.Text = rwy.Angle.ToString();
-            RwyLengthBox.Text = ((int)rwy.Length).ToString();
-            RwyAvailableCheck.IsChecked = rwy.IsAvailable;
-        }
-        else
-        {
-            RwyDesignatorBox.Text = "36";
-            RwyAngleBox.Text = "360";
-            RwyLengthBox.Text = "3500";
-            RwyAvailableCheck.IsChecked = true;
-        }
+        _runways = new ObservableCollection<Runway>(EditedAirport.Runways);
+        RunwaysGrid.ItemsSource = _runways;
+    }
+
+    private void OnAddRunwayClick(object sender, RoutedEventArgs e)
+    {
+        if (!RunwaysGrid.CommitEdit(DataGridEditingUnit.Row, true)) return;
+        var runway = new Runway { AirportId = EditedAirport.Id, Length = 3000 };
+        _runways.Add(runway);
+        RunwaysGrid.SelectedItem = runway;
+        RunwaysGrid.ScrollIntoView(runway);
+    }
+
+    private void OnRemoveRunwayClick(object sender, RoutedEventArgs e)
+    {
+        if (RunwaysGrid.SelectedItem is not Runway runway) return;
+        RunwaysGrid.CancelEdit(DataGridEditingUnit.Row);
+        _runways.Remove(runway);
     }
 
     private void OnSaveClick(object sender, RoutedEventArgs e)
@@ -48,25 +64,26 @@ public partial class EditAirportWindow : Window
         decimal.TryParse(CoordYBox.Text, out decimal y);
         int.TryParse(CapacityBox.Text, out int cap);
 
-        _targetAirport.Name = name;
-        if (x > 0) _targetAirport.CoordX = x;
-        if (y > 0) _targetAirport.CoordY = y;
-        if (cap > 0) _targetAirport.MaxCapacity = cap;
+        EditedAirport.Name = name;
+        if (x > 0) EditedAirport.CoordX = x;
+        if (y > 0) EditedAirport.CoordY = y;
+        if (cap > 0) EditedAirport.MaxCapacity = cap;
 
-        var rwy = _targetAirport.Runways.FirstOrDefault();
-        if (rwy == null)
+        if (!RunwaysGrid.CommitEdit(DataGridEditingUnit.Cell, true) ||
+            !RunwaysGrid.CommitEdit(DataGridEditingUnit.Row, true)) return;
+        var designators = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var runway in _runways)
         {
-            rwy = new Runway { AirportId = _targetAirport.Id };
-            _targetAirport.Runways.Add(rwy);
+            runway.Designator = runway.Designator.Trim().ToUpperInvariant();
+            if (runway.Designator.Length == 0 || !designators.Add(runway.Designator) ||
+                runway.Angle is < 0 or > 360 || runway.Length <= 0)
+            {
+                MessageBox.Show(this, "Вкажіть унікальний номер смуги, курс 0–360° і додатну довжину.",
+                    "Характеристики смуги", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
         }
-
-        rwy.Designator = string.IsNullOrWhiteSpace(RwyDesignatorBox.Text) ? "36" : RwyDesignatorBox.Text.Trim();
-        int.TryParse(RwyAngleBox.Text, out int angle);
-        rwy.Angle = angle > 0 ? angle : 360;
-
-        decimal.TryParse(RwyLengthBox.Text, out decimal len);
-        rwy.Length = len > 0 ? len : 3000m;
-        rwy.IsAvailable = RwyAvailableCheck.IsChecked ?? true;
+        EditedAirport.Runways = [.. _runways];
 
         DialogResult = true;
         Close();

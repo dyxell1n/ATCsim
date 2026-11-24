@@ -85,4 +85,50 @@ public class CollisionTests
         first.Altitude = CollisionDetector.VerticalSeparationMinFt;
         Assert.True(detector.CanDepart(second, traffic));
     }
+    [Theory]
+    [InlineData(32)]
+    [InlineData(512)]
+    public void SweepMatchesAllPairsInOrderIncludingBoundaryCases(int count)
+    {
+        var random = new Random(8124);
+        var traffic = Enumerable.Range(0, count).Select(i => new Aircraft
+        {
+            Id = i, CoordX = random.Next(-40, 41), CoordY = random.Next(-40, 41),
+            Altitude = random.Next(1, 5) * 500, IsActive = i % 9 != 0
+        }).ToList();
+        traffic.AddRange([new() { Id = count, Altitude = 20000, CoordX = -5 },
+            new() { Id = count + 1, Altitude = 20000 }, new() { Id = count + 2, Altitude = 20000, CoordX = 4.99m }]);
+
+        var expected = (from a in traffic from b in traffic
+            where a.Id < b.Id && a.IsAirborne && b.IsAirborne && Math.Abs(a.Altitude - b.Altitude) < 1000
+            let dx = a.CoordX - b.CoordX let dy = a.CoordY - b.CoordY
+            where dx * dx + dy * dy < 25 select (a.Id, b.Id)).ToList();
+        var detector = new CollisionDetector();
+        var emitted = new List<CollisionAlert>();
+        detector.SeparationAlertTriggered += emitted.Add;
+        var alerts = detector.CheckSeparation(traffic);
+        Assert.Equal(expected, alerts.Select(a => (a.Aircraft1.Id, a.Aircraft2.Id)));
+        Assert.Equal(alerts, emitted);
+    }
+
+    [Fact]
+    public void ConflictIsReportedOnceUntilSeparationRecovers()
+    {
+        var a = new Aircraft { Id = 1, Altitude = 30000 };
+        var b = new Aircraft { Id = 2, Altitude = 30000 };
+        using var engine = new ATCsim.Core.Services.SimulationEngine();
+        engine.ReplaceAircraft([a, b]);
+        int warnings = 0;
+        engine.ConflictDetected += _ => warnings++;
+        engine.Advance(1);
+        engine.Advance(1);
+        Assert.Equal(1, warnings);
+        Assert.True(engine.ConflictingAircraft.SetEquals([1, 2]));
+        b.CoordX = 20;
+        engine.Advance(1);
+        Assert.Empty(engine.ConflictingAircraft);
+        b.CoordX = 0;
+        engine.Advance(1);
+        Assert.Equal(2, warnings);
+    }
 }

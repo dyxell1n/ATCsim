@@ -126,4 +126,24 @@ public class KinematicsTests
         Assert.Equal(new TrailPoint(250, 500, 0), Assert.Single(aircraft.TrailPoints));
         Assert.Equal(360m, aircraft.PlannedDepartureSpeed);
     }
+    [Theory]
+    [InlineData(1, 100)]
+    [InlineData(8, 800)]
+    [InlineData(16, 1600)]
+    public async Task LiveTickAdvancesByScaledTimerInterval(double scale, int expectedMilliseconds)
+    {
+        using var engine = new ATCsim.Core.Services.SimulationEngine();
+        engine.LoadSector(new(), DateTime.UnixEpoch);
+        engine.SetTimeScale(scale);
+        var firstTick = new TaskCompletionSource<TimeSpan>(TaskCreationOptions.RunContinuationsAsynchronously);
+        engine.StateUpdated += () =>
+        {
+            var elapsed = engine.SimTime - DateTime.UnixEpoch;
+            if (elapsed > TimeSpan.Zero) firstTick.TrySetResult(elapsed);
+        };
+        engine.Start();
+        var actual = await firstTick.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        engine.Pause();
+        Assert.Equal(TimeSpan.FromMilliseconds(expectedMilliseconds), actual);
+    }
 }

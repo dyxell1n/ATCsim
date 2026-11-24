@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using System.Windows.Media;
 using ATCsim.Core.Entities;
-using ATCsim.Core.Services;
 using ATCsim.Core.WorldGeneration;
 
 namespace ATCsim.UI.ViewModels;
@@ -22,6 +21,8 @@ public class AircraftTrackViewModel : ViewModelBase
     public string Callsign => Aircraft.Callsign;
     public string ModelName => Aircraft.Model?.ModelName ?? "B738";
     public string ShortModel => Aircraft.Model?.IconType ?? "B738";
+    public bool IsMriya => Resources.AviationIcons.IsMriya(ShortModel);
+    public string RadarModelLabel => IsMriya ? "Ан-225 «Мрія»" : ShortModel;
     public Geometry IconGeometry => Resources.AviationIcons.ForAircraft(ShortModel);
 
     public double X
@@ -97,6 +98,47 @@ public class AircraftTrackViewModel : ViewModelBase
         UpdateFromModel();
     }
 
+    private readonly DrawingGroup _trailHistory = new();
+    private int _drawnPoints;
+    private TrailPoint _firstPoint;
+
+    internal void DrawTrail(DrawingContext frame)
+    {
+        var points = Aircraft.TrailPoints;
+        if (points.Count == 0)
+        {
+            if (_drawnPoints > 0) _trailHistory.Children.Clear();
+            _drawnPoints = 0;
+            return;
+        }
+        if (!IsAirborne && Aircraft.Operations.LandedAt == null) return;
+        // The tracker drops its oldest point when the history reaches capacity.
+        if (points[0] != _firstPoint || points.Count < _drawnPoints)
+        {
+            _trailHistory.Children.Clear();
+            _drawnPoints = 0;
+        }
+        if (points.Count != _drawnPoints)
+        {
+            using var history = _trailHistory.Append();
+            for (int i = Math.Max(1, _drawnPoints); i < points.Count; i++)
+            {
+                var first = points[i - 1];
+                var second = points[i];
+                if ((first.X < 5 && first.Y < 5) || (second.X < 5 && second.Y < 5)) continue;
+                history.DrawLine(RadarViewModel.TrailPen(first.Altitude, second.Altitude),
+                    new(first.X, first.Y), new(second.X, second.Y));
+            }
+            _firstPoint = points[0];
+            _drawnPoints = points.Count;
+        }
+        frame.DrawDrawing(_trailHistory);
+        var last = points[^1];
+        if (IsAirborne && last.X > 5 && last.Y > 5 && X > 5 && Y > 5 &&
+            (Math.Abs(last.X - X) > 0.5 || Math.Abs(last.Y - Y) > 0.5))
+            frame.DrawLine(RadarViewModel.TrailPen(last.Altitude, Altitude), new(last.X, last.Y), new(X, Y));
+    }
+
     public void UpdateFromModel()
     {
         X = (double)Aircraft.CoordX;
@@ -106,15 +148,6 @@ public class AircraftTrackViewModel : ViewModelBase
         GroundSpeed = Aircraft.GroundSpeed;
         IsAirborne = Aircraft.IsAirborne;
     }
-}
-
-public class TrailSegmentViewModel
-{
-    public double X1 { get; init; }
-    public double Y1 { get; init; }
-    public double X2 { get; init; }
-    public double Y2 { get; init; }
-    public Brush StrokeBrush { get; init; } = Brushes.Orange;
 }
 
 public class AirportMarkerViewModel : ViewModelBase
@@ -172,7 +205,7 @@ public class WeatherZoneViewModel(WeatherZone zone)
 }
 public class RadarViewModel : ViewModelBase
 {
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, Brush> BrushCache = new();
+    private static readonly Dictionary<(Color, Color), Pen> Pens = [];
 
     public static Color GetAltitudeColor(decimal altitude)
     {
@@ -202,14 +235,12 @@ public class RadarViewModel : ViewModelBase
         return Color.FromRgb(r, g, b);
     }
 
-    public static Brush GetAltitudeBrush(decimal alt1, decimal alt2)
+    internal static Pen TrailPen(decimal alt1, decimal alt2)
     {
         Color c1 = GetAltitudeColor(alt1);
         Color c2 = GetAltitudeColor(alt2);
 
-        int key = (c1.R << 24) | (c1.G << 16) | (c2.R << 8) | c2.B;
-        if (BrushCache.TryGetValue(key, out var cached))
-            return cached;
+        if (Pens.TryGetValue((c1, c2), out var cached)) return cached;
 
         Brush brush;
         if (c1 == c2)
@@ -231,21 +262,21 @@ public class RadarViewModel : ViewModelBase
             brush = grad;
         }
 
-        BrushCache.TryAdd(key, brush);
-        return brush;
+        var pen = new Pen(brush, 3.5) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        pen.Freeze();
+        Pens.Add((c1, c2), pen);
+        return pen;
     }
 
-    private readonly SimulationEngine _engine;
     private bool _showAirportLabels = true;
     private AircraftTrackViewModel? _selectedTrack;
     private AirportMarkerViewModel? _selectedAirport;
 
     public ObservableCollection<AircraftTrackViewModel> Tracks { get; } = [];
     public ObservableCollection<AirportMarkerViewModel> Airports { get; } = [];
-    public ObservableCollection<Waypoint> Waypoints { get; } = [];
     public ObservableCollection<TerrainPatchViewModel> Terrain { get; } = [];
     public ObservableCollection<WeatherZoneViewModel> WeatherZones { get; } = [];
-    public ObservableCollection<TrailSegmentViewModel> AllTrailSegments { get; } = [];
+    public DrawingGroup TrailDrawing { get; } = new();
 
     public bool ShowAirportLabels
     {
@@ -289,9 +320,8 @@ public class RadarViewModel : ViewModelBase
     public ICommand SelectAirportCommand { get; }
     public ICommand ClearSelectionCommand { get; }
 
-    public RadarViewModel(SimulationEngine engine)
+    public RadarViewModel()
     {
-        _engine = engine;
         SelectTrackCommand = new RelayCommand(p =>
         {
             if (p is AircraftTrackViewModel { IsAirborne: true } track)
@@ -319,14 +349,11 @@ public class RadarViewModel : ViewModelBase
 
     public void RefreshSector(WorldSector sector)
     {
-        Tracks.Clear();
         Airports.Clear();
-        Waypoints.Clear();
         Terrain.Clear();
         WeatherZones.Clear();
         foreach (var patch in sector.Terrain) Terrain.Add(new TerrainPatchViewModel(patch));
         foreach (var zone in sector.WeatherZones.Where(z => z.IsActive)) WeatherZones.Add(new WeatherZoneViewModel(zone));
-        AllTrailSegments.Clear();
 
         foreach (var apt in sector.Airports)
         {
@@ -339,20 +366,21 @@ public class RadarViewModel : ViewModelBase
             });
         }
 
-        foreach (var wp in sector.Waypoints)
-        {
-            Waypoints.Add(wp);
-        }
+        SelectedAirport = null;
+        RefreshAircraft(sector.Aircraft);
+    }
 
-        foreach (var ac in sector.Aircraft)
+    public void RefreshAircraft(IReadOnlyList<Aircraft> aircraft)
+    {
+        Tracks.Clear();
+        foreach (var ac in aircraft)
         {
             var tvm = new AircraftTrackViewModel(ac);
             Tracks.Add(tvm);
         }
 
-        SelectedTrack = Tracks.FirstOrDefault(track => track.IsAirborne);
-        SelectedAirport = null;
-        UpdateTrailSegments();
+        SelectedTrack = SelectedAirport == null ? Tracks.FirstOrDefault(track => track.IsAirborne) : null;
+        UpdateTrailDrawing();
     }
 
     public void RefreshAirportsList(IReadOnlyList<Airport> airports)
@@ -370,72 +398,20 @@ public class RadarViewModel : ViewModelBase
         SelectedAirport = Airports.FirstOrDefault(airport => airport.IcaoCode == selectedIcao);
     }
 
-    public void SyncPositions()
+    public void SyncPositions(IReadOnlySet<int>? conflicts = null)
     {
         foreach (var track in Tracks)
         {
             track.UpdateFromModel();
+            track.HasConflict = conflicts?.Contains(track.Aircraft.Id) == true;
         }
         if (SelectedTrack is { IsAirborne: false }) SelectedTrack = null;
-        UpdateTrailSegments();
+        UpdateTrailDrawing();
     }
 
-    private void UpdateTrailSegments()
+    private void UpdateTrailDrawing()
     {
-        AllTrailSegments.Clear();
-        foreach (var track in Tracks)
-        {
-            if (!track.IsAirborne) continue;
-            var pts = track.Aircraft.TrailPoints;
-            for (int i = 0; i < pts.Count - 1; i++)
-            {
-                var p1 = pts[i];
-                var p2 = pts[i + 1];
-
-                // Filter out any corrupt or default (0, 0) top-left coordinates
-                if (p1.X < 5.0 && p1.Y < 5.0) continue;
-                if (p2.X < 5.0 && p2.Y < 5.0) continue;
-
-                AllTrailSegments.Add(new TrailSegmentViewModel
-                {
-                    X1 = p1.X,
-                    Y1 = p1.Y,
-                    X2 = p2.X,
-                    Y2 = p2.Y,
-                    StrokeBrush = GetAltitudeBrush(p1.Altitude, p2.Altitude)
-                });
-            }
-
-            if (pts.Count > 0)
-            {
-                var lastPt = pts[^1];
-                if (lastPt.X > 5.0 && lastPt.Y > 5.0 && track.X > 5.0 && track.Y > 5.0)
-                {
-                    if (Math.Abs(lastPt.X - track.X) > 0.5 || Math.Abs(lastPt.Y - track.Y) > 0.5)
-                    {
-                        AllTrailSegments.Add(new TrailSegmentViewModel
-                        {
-                            X1 = lastPt.X,
-                            Y1 = lastPt.Y,
-                            X2 = track.X,
-                            Y2 = track.Y,
-                            StrokeBrush = GetAltitudeBrush(lastPt.Altitude, track.Altitude)
-                        });
-                    }
-                }
-            }
-        }
-    }
-
-    public void MarkConflict(string callsign1, string callsign2)
-    {
-        foreach (var track in Tracks)
-        {
-            if (track.Callsign == callsign1 || track.Callsign == callsign2)
-            {
-                track.HasConflict = true;
-            }
-        }
+        using var frame = TrailDrawing.Open();
+        foreach (var track in Tracks) track.DrawTrail(frame);
     }
 }
-

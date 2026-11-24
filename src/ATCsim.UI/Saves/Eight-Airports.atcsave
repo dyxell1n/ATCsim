@@ -1,0 +1,4937 @@
+{
+  "kind": "atcsim.save",
+  "version": 1,
+  "data": {
+    "worldSeed": 84920417,
+    "terrainVersion": 2,
+    "simTime": "2026-11-24T08:00:00Z",
+    "timeScale": 8,
+    "airports": [
+      {
+        "id": 1,
+        "icaoCode": "UKLL",
+        "name": "Lviv Danylo Halytskyi",
+        "coordX": 475,
+        "coordY": 364,
+        "maxCapacity": 12,
+        "createdAt": "1970-01-01T00:00:00Z",
+        "runways": [
+          {
+            "id": 1,
+            "airportId": 1,
+            "designator": "07",
+            "angle": 70,
+            "length": 3550,
+            "isAvailable": true
+          },
+          {
+            "id": 2,
+            "airportId": 1,
+            "designator": "25",
+            "angle": 250,
+            "length": 3550,
+            "isAvailable": true
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "icaoCode": "UKBB",
+        "name": "Kyiv Boryspil",
+        "coordX": 97,
+        "coordY": 364,
+        "maxCapacity": 12,
+        "createdAt": "1970-01-01T00:00:00Z",
+        "runways": [
+          {
+            "id": 3,
+            "airportId": 2,
+            "designator": "09L",
+            "angle": 90,
+            "length": 3700,
+            "isAvailable": true
+          },
+          {
+            "id": 4,
+            "airportId": 2,
+            "designator": "27R",
+            "angle": 270,
+            "length": 3700,
+            "isAvailable": true
+          },
+          {
+            "id": 5,
+            "airportId": 2,
+            "designator": "09R",
+            "angle": 90,
+            "length": 3400,
+            "isAvailable": true
+          },
+          {
+            "id": 6,
+            "airportId": 2,
+            "designator": "27L",
+            "angle": 270,
+            "length": 3400,
+            "isAvailable": true
+          },
+          {
+            "id": 7,
+            "airportId": 2,
+            "designator": "15",
+            "angle": 150,
+            "length": 3150,
+            "isAvailable": true
+          },
+          {
+            "id": 8,
+            "airportId": 2,
+            "designator": "33",
+            "angle": 330,
+            "length": 3150,
+            "isAvailable": true
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "icaoCode": "UKKK",
+        "name": "Kyiv Zhuliany",
+        "coordX": 346,
+        "coordY": 354,
+        "maxCapacity": 12,
+        "createdAt": "1970-01-01T00:00:00Z",
+        "runways": [
+          {
+            "id": 9,
+            "airportId": 3,
+            "designator": "11",
+            "angle": 110,
+            "length": 3550,
+            "isAvailable": true
+          },
+          {
+            "id": 10,
+            "airportId": 3,
+            "designator": "29",
+            "angle": 290,
+            "length": 3550,
+            "isAvailable": true
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "icaoCode": "UKOO",
+        "name": "Odesa International",
+        "coordX": 355,
+        "coordY": 225,
+        "maxCapacity": 12,
+        "createdAt": "1970-01-01T00:00:00Z",
+        "runways": [
+          {
+            "id": 11,
+            "airportId": 4,
+            "designator": "15",
+            "angle": 150,
+            "length": 3550,
+            "isAvailable": true
+          },
+          {
+            "id": 12,
+            "airportId": 4,
+            "designator": "33",
+            "angle": 330,
+            "length": 3550,
+            "isAvailable": true
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "icaoCode": "UKHH",
+        "name": "Kharkiv International",
+        "coordX": 364,
+        "coordY": 100,
+        "maxCapacity": 12,
+        "createdAt": "1970-01-01T00:00:00Z",
+        "runways": [
+          {
+            "id": 13,
+            "airportId": 5,
+            "designator": "06",
+            "angle": 60,
+            "length": 3550,
+            "isAvailable": true
+          },
+          {
+            "id": 14,
+            "airportId": 5,
+            "designator": "24",
+            "angle": 240,
+            "length": 3550,
+            "isAvailable": true
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "icaoCode": "XAVO",
+        "name": "Aviora",
+        "coordX": 900,
+        "coordY": 100,
+        "maxCapacity": 12,
+        "createdAt": "1970-01-01T00:00:00Z",
+        "runways": [
+          {
+            "id": 15,
+            "airportId": 6,
+            "designator": "04L",
+            "angle": 40,
+            "length": 3700,
+            "isAvailable": true
+          },
+          {
+            "id": 16,
+            "airportId": 6,
+            "designator": "22R",
+            "angle": 220,
+            "length": 3700,
+            "isAvailable": true
+          },
+          {
+            "id": 17,
+            "airportId": 6,
+            "designator": "04R",
+            "angle": 40,
+            "length": 3400,
+            "isAvailable": true
+          },
+          {
+            "id": 18,
+            "airportId": 6,
+            "designator": "22L",
+            "angle": 220,
+            "length": 3400,
+            "isAvailable": true
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "icaoCode": "XRIV",
+        "name": "Rivergate",
+        "coordX": 900,
+        "coordY": 550,
+        "maxCapacity": 12,
+        "createdAt": "1970-01-01T00:00:00Z",
+        "runways": [
+          {
+            "id": 19,
+            "airportId": 7,
+            "designator": "13",
+            "angle": 130,
+            "length": 3550,
+            "isAvailable": true
+          },
+          {
+            "id": 20,
+            "airportId": 7,
+            "designator": "31",
+            "angle": 310,
+            "length": 3550,
+            "isAvailable": true
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "icaoCode": "XPRT",
+        "name": "Northport",
+        "coordX": 100,
+        "coordY": 100,
+        "maxCapacity": 12,
+        "createdAt": "1970-01-01T00:00:00Z",
+        "runways": [
+          {
+            "id": 21,
+            "airportId": 8,
+            "designator": "05",
+            "angle": 50,
+            "length": 3500,
+            "isAvailable": true
+          },
+          {
+            "id": 22,
+            "airportId": 8,
+            "designator": "23",
+            "angle": 230,
+            "length": 3500,
+            "isAvailable": true
+          },
+          {
+            "id": 23,
+            "airportId": 8,
+            "designator": "12",
+            "angle": 120,
+            "length": 3150,
+            "isAvailable": true
+          },
+          {
+            "id": 24,
+            "airportId": 8,
+            "designator": "30",
+            "angle": 300,
+            "length": 3150,
+            "isAvailable": true
+          }
+        ]
+      }
+    ],
+    "weatherZones": [
+      {
+        "id": 1,
+        "name": "STORM 01",
+        "zoneType": "STORM",
+        "centerX": 738,
+        "centerY": 567,
+        "radius": 49,
+        "minAltitude": 0,
+        "maxAltitude": 29000,
+        "isActive": true
+      },
+      {
+        "id": 2,
+        "name": "TURBULENCE 02",
+        "zoneType": "TURBULENCE",
+        "centerX": 412,
+        "centerY": 441,
+        "radius": 34,
+        "minAltitude": 0,
+        "maxAltitude": 18000,
+        "isActive": true
+      },
+      {
+        "id": 3,
+        "name": "RESTRICTED 03",
+        "zoneType": "RESTRICTED",
+        "centerX": 102,
+        "centerY": 505,
+        "radius": 48,
+        "minAltitude": 0,
+        "maxAltitude": 20000,
+        "isActive": true
+      }
+    ],
+    "aircraft": [
+      {
+        "id": 1,
+        "callsign": "HUB101",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 475,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 270,
+        "groundSpeed": 0,
+        "targetHeading": 270,
+        "targetAltitude": 23000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKLL",
+        "arrivalAirportIcao": "UKBB",
+        "originX": 475,
+        "originY": 364,
+        "destinationX": 97,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 475,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 2,
+        "callsign": "HUB102",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 475,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 274.4326684686898,
+        "groundSpeed": 0,
+        "targetHeading": 274.4326684686898,
+        "targetAltitude": 18000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKLL",
+        "arrivalAirportIcao": "UKKK",
+        "originX": 475,
+        "originY": 364,
+        "destinationX": 346,
+        "destinationY": 354,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 475,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 3,
+        "callsign": "HUB103",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 475,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 319.1956496917806,
+        "groundSpeed": 0,
+        "targetHeading": 319.1956496917806,
+        "targetAltitude": 19000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKLL",
+        "arrivalAirportIcao": "UKOO",
+        "originX": 475,
+        "originY": 364,
+        "destinationX": 355,
+        "destinationY": 225,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 475,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 4,
+        "callsign": "HUB104",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 475,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 337.19545952867895,
+        "groundSpeed": 0,
+        "targetHeading": 337.19545952867895,
+        "targetAltitude": 21000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKLL",
+        "arrivalAirportIcao": "UKHH",
+        "originX": 475,
+        "originY": 364,
+        "destinationX": 364,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 475,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 5,
+        "callsign": "HUB105",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 475,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 58.15242256527615,
+        "groundSpeed": 0,
+        "targetHeading": 58.15242256527615,
+        "targetAltitude": 25000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKLL",
+        "arrivalAirportIcao": "XAVO",
+        "originX": 475,
+        "originY": 364,
+        "destinationX": 900,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 475,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 6,
+        "callsign": "HUB106",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 475,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 113.63644953752205,
+        "groundSpeed": 0,
+        "targetHeading": 113.63644953752205,
+        "targetAltitude": 24000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKLL",
+        "arrivalAirportIcao": "XRIV",
+        "originX": 475,
+        "originY": 364,
+        "destinationX": 900,
+        "destinationY": 550,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 475,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 7,
+        "callsign": "HUB107",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 475,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 305.14554549970603,
+        "groundSpeed": 0,
+        "targetHeading": 305.14554549970603,
+        "targetAltitude": 24000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKLL",
+        "arrivalAirportIcao": "XPRT",
+        "originX": 475,
+        "originY": 364,
+        "destinationX": 100,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 475,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 8,
+        "callsign": "HUB108",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 475,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 274.4326684686898,
+        "groundSpeed": 0,
+        "targetHeading": 274.4326684686898,
+        "targetAltitude": 18000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKLL",
+        "arrivalAirportIcao": "UKKK",
+        "originX": 475,
+        "originY": 364,
+        "destinationX": 346,
+        "destinationY": 354,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 475,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 9,
+        "callsign": "HUB109",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 475,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 319.1956496917806,
+        "groundSpeed": 0,
+        "targetHeading": 319.1956496917806,
+        "targetAltitude": 19000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKLL",
+        "arrivalAirportIcao": "UKOO",
+        "originX": 475,
+        "originY": 364,
+        "destinationX": 355,
+        "destinationY": 225,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 475,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 10,
+        "callsign": "HUB110",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 475,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 337.19545952867895,
+        "groundSpeed": 0,
+        "targetHeading": 337.19545952867895,
+        "targetAltitude": 21000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKLL",
+        "arrivalAirportIcao": "UKHH",
+        "originX": 475,
+        "originY": 364,
+        "destinationX": 364,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 475,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 11,
+        "callsign": "HUB111",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 475,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 58.15242256527615,
+        "groundSpeed": 0,
+        "targetHeading": 58.15242256527615,
+        "targetAltitude": 25000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKLL",
+        "arrivalAirportIcao": "XAVO",
+        "originX": 475,
+        "originY": 364,
+        "destinationX": 900,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 475,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 12,
+        "callsign": "HUB112",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 475,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 113.63644953752205,
+        "groundSpeed": 0,
+        "targetHeading": 113.63644953752205,
+        "targetAltitude": 24000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKLL",
+        "arrivalAirportIcao": "XRIV",
+        "originX": 475,
+        "originY": 364,
+        "destinationX": 900,
+        "destinationY": 550,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 475,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 13,
+        "callsign": "ADB225",
+        "modelId": 8,
+        "isActive": true,
+        "coordX": 97,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 87.70020057820801,
+        "groundSpeed": 0,
+        "targetHeading": 87.70020057820801,
+        "targetAltitude": 20000,
+        "plannedDepartureSpeed": 432,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKBB",
+        "arrivalAirportIcao": "UKKK",
+        "originX": 97,
+        "originY": 364,
+        "destinationX": 346,
+        "destinationY": 354,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 97,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 8,
+          "modelName": "Antonov An-225 \u041C\u0440\u0456\u044F",
+          "category": "HEAVY",
+          "cruiseSpeed": 432,
+          "maxAltitude": 29500,
+          "fuelCapacity": 300000,
+          "iconType": "A225"
+        }
+      },
+      {
+        "id": 14,
+        "callsign": "HUB202",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 97,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 61.68600277836778,
+        "groundSpeed": 0,
+        "targetHeading": 61.68600277836778,
+        "targetAltitude": 21000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKBB",
+        "arrivalAirportIcao": "UKOO",
+        "originX": 97,
+        "originY": 364,
+        "destinationX": 355,
+        "destinationY": 225,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 97,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 15,
+        "callsign": "HUB203",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 97,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 45.323701524920224,
+        "groundSpeed": 0,
+        "targetHeading": 45.323701524920224,
+        "targetAltitude": 23000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKBB",
+        "arrivalAirportIcao": "UKHH",
+        "originX": 97,
+        "originY": 364,
+        "destinationX": 364,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 97,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 16,
+        "callsign": "HUB204",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 97,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 71.8008349469546,
+        "groundSpeed": 0,
+        "targetHeading": 71.8008349469546,
+        "targetAltitude": 28000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKBB",
+        "arrivalAirportIcao": "XAVO",
+        "originX": 97,
+        "originY": 364,
+        "destinationX": 900,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 97,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 17,
+        "callsign": "HUB205",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 97,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 103.04150793500007,
+        "groundSpeed": 0,
+        "targetHeading": 103.04150793500007,
+        "targetAltitude": 30000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKBB",
+        "arrivalAirportIcao": "XRIV",
+        "originX": 97,
+        "originY": 364,
+        "destinationX": 900,
+        "destinationY": 550,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 97,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 18,
+        "callsign": "HUB206",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 97,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 0.6510603802294862,
+        "groundSpeed": 0,
+        "targetHeading": 0.6510603802294862,
+        "targetAltitude": 20000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKBB",
+        "arrivalAirportIcao": "XPRT",
+        "originX": 97,
+        "originY": 364,
+        "destinationX": 100,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 97,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 19,
+        "callsign": "HUB207",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 97,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 90,
+        "groundSpeed": 0,
+        "targetHeading": 90,
+        "targetAltitude": 23000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKBB",
+        "arrivalAirportIcao": "UKLL",
+        "originX": 97,
+        "originY": 364,
+        "destinationX": 475,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 97,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 20,
+        "callsign": "HUB208",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 97,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 61.68600277836778,
+        "groundSpeed": 0,
+        "targetHeading": 61.68600277836778,
+        "targetAltitude": 21000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKBB",
+        "arrivalAirportIcao": "UKOO",
+        "originX": 97,
+        "originY": 364,
+        "destinationX": 355,
+        "destinationY": 225,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 97,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 21,
+        "callsign": "HUB209",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 97,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 45.323701524920224,
+        "groundSpeed": 0,
+        "targetHeading": 45.323701524920224,
+        "targetAltitude": 23000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKBB",
+        "arrivalAirportIcao": "UKHH",
+        "originX": 97,
+        "originY": 364,
+        "destinationX": 364,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 97,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 22,
+        "callsign": "HUB210",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 97,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 71.8008349469546,
+        "groundSpeed": 0,
+        "targetHeading": 71.8008349469546,
+        "targetAltitude": 28000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKBB",
+        "arrivalAirportIcao": "XAVO",
+        "originX": 97,
+        "originY": 364,
+        "destinationX": 900,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 97,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 23,
+        "callsign": "HUB211",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 97,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 103.04150793500007,
+        "groundSpeed": 0,
+        "targetHeading": 103.04150793500007,
+        "targetAltitude": 30000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKBB",
+        "arrivalAirportIcao": "XRIV",
+        "originX": 97,
+        "originY": 364,
+        "destinationX": 900,
+        "destinationY": 550,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 97,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 24,
+        "callsign": "HUB212",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 97,
+        "coordY": 364,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 0.6510603802294862,
+        "groundSpeed": 0,
+        "targetHeading": 0.6510603802294862,
+        "targetAltitude": 20000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKBB",
+        "arrivalAirportIcao": "XPRT",
+        "originX": 97,
+        "originY": 364,
+        "destinationX": 100,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 97,
+            "y": 364,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 25,
+        "callsign": "HUB301",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 346,
+        "coordY": 354,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 3.9909130984297803,
+        "groundSpeed": 0,
+        "targetHeading": 3.9909130984297803,
+        "targetAltitude": 18000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKKK",
+        "arrivalAirportIcao": "UKOO",
+        "originX": 346,
+        "originY": 354,
+        "destinationX": 355,
+        "destinationY": 225,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 346,
+            "y": 354,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 26,
+        "callsign": "HUB302",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 346,
+        "coordY": 354,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 4.053554231831407,
+        "groundSpeed": 0,
+        "targetHeading": 4.053554231831407,
+        "targetAltitude": 20000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKKK",
+        "arrivalAirportIcao": "UKHH",
+        "originX": 346,
+        "originY": 354,
+        "destinationX": 364,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 346,
+            "y": 354,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 27,
+        "callsign": "HUB303",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 346,
+        "coordY": 354,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 65.36931330218717,
+        "groundSpeed": 0,
+        "targetHeading": 65.36931330218717,
+        "targetAltitude": 27000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKKK",
+        "arrivalAirportIcao": "XAVO",
+        "originX": 346,
+        "originY": 354,
+        "destinationX": 900,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 346,
+            "y": 354,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 28,
+        "callsign": "HUB304",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 346,
+        "coordY": 354,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 109.48330140821942,
+        "groundSpeed": 0,
+        "targetHeading": 109.48330140821942,
+        "targetAltitude": 27000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKKK",
+        "arrivalAirportIcao": "XRIV",
+        "originX": 346,
+        "originY": 354,
+        "destinationX": 900,
+        "destinationY": 550,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 346,
+            "y": 354,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 29,
+        "callsign": "HUB305",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 346,
+        "coordY": 354,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 315.9166542563853,
+        "groundSpeed": 0,
+        "targetHeading": 315.9166542563853,
+        "targetAltitude": 22000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKKK",
+        "arrivalAirportIcao": "XPRT",
+        "originX": 346,
+        "originY": 354,
+        "destinationX": 100,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 346,
+            "y": 354,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 30,
+        "callsign": "HUB306",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 346,
+        "coordY": 354,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 94.43266846868987,
+        "groundSpeed": 0,
+        "targetHeading": 94.43266846868987,
+        "targetAltitude": 18000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKKK",
+        "arrivalAirportIcao": "UKLL",
+        "originX": 346,
+        "originY": 354,
+        "destinationX": 475,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 346,
+            "y": 354,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 31,
+        "callsign": "HUB307",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 346,
+        "coordY": 354,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 267.700200578208,
+        "groundSpeed": 0,
+        "targetHeading": 267.700200578208,
+        "targetAltitude": 20000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKKK",
+        "arrivalAirportIcao": "UKBB",
+        "originX": 346,
+        "originY": 354,
+        "destinationX": 97,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 346,
+            "y": 354,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 32,
+        "callsign": "HUB308",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 346,
+        "coordY": 354,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 4.053554231831407,
+        "groundSpeed": 0,
+        "targetHeading": 4.053554231831407,
+        "targetAltitude": 20000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKKK",
+        "arrivalAirportIcao": "UKHH",
+        "originX": 346,
+        "originY": 354,
+        "destinationX": 364,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 346,
+            "y": 354,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 33,
+        "callsign": "HUB309",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 346,
+        "coordY": 354,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 65.36931330218717,
+        "groundSpeed": 0,
+        "targetHeading": 65.36931330218717,
+        "targetAltitude": 27000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKKK",
+        "arrivalAirportIcao": "XAVO",
+        "originX": 346,
+        "originY": 354,
+        "destinationX": 900,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 346,
+            "y": 354,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 34,
+        "callsign": "HUB310",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 346,
+        "coordY": 354,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 109.48330140821942,
+        "groundSpeed": 0,
+        "targetHeading": 109.48330140821942,
+        "targetAltitude": 27000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKKK",
+        "arrivalAirportIcao": "XRIV",
+        "originX": 346,
+        "originY": 354,
+        "destinationX": 900,
+        "destinationY": 550,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 346,
+            "y": 354,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 35,
+        "callsign": "HUB311",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 346,
+        "coordY": 354,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 315.9166542563853,
+        "groundSpeed": 0,
+        "targetHeading": 315.9166542563853,
+        "targetAltitude": 22000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKKK",
+        "arrivalAirportIcao": "XPRT",
+        "originX": 346,
+        "originY": 354,
+        "destinationX": 100,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 346,
+            "y": 354,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 36,
+        "callsign": "HUB312",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 346,
+        "coordY": 354,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 94.43266846868987,
+        "groundSpeed": 0,
+        "targetHeading": 94.43266846868987,
+        "targetAltitude": 18000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKKK",
+        "arrivalAirportIcao": "UKLL",
+        "originX": 346,
+        "originY": 354,
+        "destinationX": 475,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 346,
+            "y": 354,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 37,
+        "callsign": "HUB401",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 355,
+        "coordY": 225,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 4.118189703988783,
+        "groundSpeed": 0,
+        "targetHeading": 4.118189703988783,
+        "targetAltitude": 18000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKOO",
+        "arrivalAirportIcao": "UKHH",
+        "originX": 355,
+        "originY": 225,
+        "destinationX": 364,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 355,
+            "y": 225,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 38,
+        "callsign": "HUB402",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 355,
+        "coordY": 225,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 77.08218715606606,
+        "groundSpeed": 0,
+        "targetHeading": 77.08218715606606,
+        "targetAltitude": 26000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKOO",
+        "arrivalAirportIcao": "XAVO",
+        "originX": 355,
+        "originY": 225,
+        "destinationX": 900,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 355,
+            "y": 225,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 39,
+        "callsign": "HUB403",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 355,
+        "coordY": 225,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 120.80890345097602,
+        "groundSpeed": 0,
+        "targetHeading": 120.80890345097602,
+        "targetAltitude": 28000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKOO",
+        "arrivalAirportIcao": "XRIV",
+        "originX": 355,
+        "originY": 225,
+        "destinationX": 900,
+        "destinationY": 550,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 355,
+            "y": 225,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 40,
+        "callsign": "HUB404",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 355,
+        "coordY": 225,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 296.1139126302907,
+        "groundSpeed": 0,
+        "targetHeading": 296.1139126302907,
+        "targetAltitude": 21000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKOO",
+        "arrivalAirportIcao": "XPRT",
+        "originX": 355,
+        "originY": 225,
+        "destinationX": 100,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 355,
+            "y": 225,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 41,
+        "callsign": "HUB405",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 355,
+        "coordY": 225,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 139.19564969178063,
+        "groundSpeed": 0,
+        "targetHeading": 139.19564969178063,
+        "targetAltitude": 19000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKOO",
+        "arrivalAirportIcao": "UKLL",
+        "originX": 355,
+        "originY": 225,
+        "destinationX": 475,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 355,
+            "y": 225,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 42,
+        "callsign": "HUB406",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 355,
+        "coordY": 225,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 241.68600277836777,
+        "groundSpeed": 0,
+        "targetHeading": 241.68600277836777,
+        "targetAltitude": 21000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKOO",
+        "arrivalAirportIcao": "UKBB",
+        "originX": 355,
+        "originY": 225,
+        "destinationX": 97,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 355,
+            "y": 225,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 43,
+        "callsign": "HUB407",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 355,
+        "coordY": 225,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 183.9909130984298,
+        "groundSpeed": 0,
+        "targetHeading": 183.9909130984298,
+        "targetAltitude": 18000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKOO",
+        "arrivalAirportIcao": "UKKK",
+        "originX": 355,
+        "originY": 225,
+        "destinationX": 346,
+        "destinationY": 354,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 355,
+            "y": 225,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 44,
+        "callsign": "HUB408",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 355,
+        "coordY": 225,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 77.08218715606606,
+        "groundSpeed": 0,
+        "targetHeading": 77.08218715606606,
+        "targetAltitude": 26000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKOO",
+        "arrivalAirportIcao": "XAVO",
+        "originX": 355,
+        "originY": 225,
+        "destinationX": 900,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 355,
+            "y": 225,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 45,
+        "callsign": "HUB409",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 355,
+        "coordY": 225,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 120.80890345097602,
+        "groundSpeed": 0,
+        "targetHeading": 120.80890345097602,
+        "targetAltitude": 28000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKOO",
+        "arrivalAirportIcao": "XRIV",
+        "originX": 355,
+        "originY": 225,
+        "destinationX": 900,
+        "destinationY": 550,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 355,
+            "y": 225,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 46,
+        "callsign": "HUB410",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 355,
+        "coordY": 225,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 296.1139126302907,
+        "groundSpeed": 0,
+        "targetHeading": 296.1139126302907,
+        "targetAltitude": 21000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKOO",
+        "arrivalAirportIcao": "XPRT",
+        "originX": 355,
+        "originY": 225,
+        "destinationX": 100,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 355,
+            "y": 225,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 47,
+        "callsign": "HUB411",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 355,
+        "coordY": 225,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 139.19564969178063,
+        "groundSpeed": 0,
+        "targetHeading": 139.19564969178063,
+        "targetAltitude": 19000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKOO",
+        "arrivalAirportIcao": "UKLL",
+        "originX": 355,
+        "originY": 225,
+        "destinationX": 475,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 355,
+            "y": 225,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 48,
+        "callsign": "HUB412",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 355,
+        "coordY": 225,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 241.68600277836777,
+        "groundSpeed": 0,
+        "targetHeading": 241.68600277836777,
+        "targetAltitude": 21000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKOO",
+        "arrivalAirportIcao": "UKBB",
+        "originX": 355,
+        "originY": 225,
+        "destinationX": 97,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 355,
+            "y": 225,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 49,
+        "callsign": "HUB501",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 364,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 90,
+        "groundSpeed": 0,
+        "targetHeading": 90,
+        "targetAltitude": 26000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKHH",
+        "arrivalAirportIcao": "XAVO",
+        "originX": 364,
+        "originY": 100,
+        "destinationX": 900,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 364,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 50,
+        "callsign": "HUB502",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 364,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 130.01521442859965,
+        "groundSpeed": 0,
+        "targetHeading": 130.01521442859965,
+        "targetAltitude": 29000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKHH",
+        "arrivalAirportIcao": "XRIV",
+        "originX": 364,
+        "originY": 100,
+        "destinationX": 900,
+        "destinationY": 550,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 364,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 51,
+        "callsign": "HUB503",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 364,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 270,
+        "groundSpeed": 0,
+        "targetHeading": 270,
+        "targetAltitude": 20000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKHH",
+        "arrivalAirportIcao": "XPRT",
+        "originX": 364,
+        "originY": 100,
+        "destinationX": 100,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 364,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 52,
+        "callsign": "HUB504",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 364,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 157.19545952867895,
+        "groundSpeed": 0,
+        "targetHeading": 157.19545952867895,
+        "targetAltitude": 21000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKHH",
+        "arrivalAirportIcao": "UKLL",
+        "originX": 364,
+        "originY": 100,
+        "destinationX": 475,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 364,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 53,
+        "callsign": "HUB505",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 364,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 225.32370152492024,
+        "groundSpeed": 0,
+        "targetHeading": 225.32370152492024,
+        "targetAltitude": 23000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKHH",
+        "arrivalAirportIcao": "UKBB",
+        "originX": 364,
+        "originY": 100,
+        "destinationX": 97,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 364,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 54,
+        "callsign": "HUB506",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 364,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 184.0535542318314,
+        "groundSpeed": 0,
+        "targetHeading": 184.0535542318314,
+        "targetAltitude": 20000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKHH",
+        "arrivalAirportIcao": "UKKK",
+        "originX": 364,
+        "originY": 100,
+        "destinationX": 346,
+        "destinationY": 354,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 364,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 55,
+        "callsign": "HUB507",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 364,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 184.11818970398878,
+        "groundSpeed": 0,
+        "targetHeading": 184.11818970398878,
+        "targetAltitude": 18000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKHH",
+        "arrivalAirportIcao": "UKOO",
+        "originX": 364,
+        "originY": 100,
+        "destinationX": 355,
+        "destinationY": 225,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 364,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 56,
+        "callsign": "HUB508",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 364,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 130.01521442859965,
+        "groundSpeed": 0,
+        "targetHeading": 130.01521442859965,
+        "targetAltitude": 29000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKHH",
+        "arrivalAirportIcao": "XRIV",
+        "originX": 364,
+        "originY": 100,
+        "destinationX": 900,
+        "destinationY": 550,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 364,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 57,
+        "callsign": "HUB509",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 364,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 270,
+        "groundSpeed": 0,
+        "targetHeading": 270,
+        "targetAltitude": 20000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKHH",
+        "arrivalAirportIcao": "XPRT",
+        "originX": 364,
+        "originY": 100,
+        "destinationX": 100,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 364,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 58,
+        "callsign": "HUB510",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 364,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 157.19545952867895,
+        "groundSpeed": 0,
+        "targetHeading": 157.19545952867895,
+        "targetAltitude": 21000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKHH",
+        "arrivalAirportIcao": "UKLL",
+        "originX": 364,
+        "originY": 100,
+        "destinationX": 475,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 364,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 59,
+        "callsign": "HUB511",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 364,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 225.32370152492024,
+        "groundSpeed": 0,
+        "targetHeading": 225.32370152492024,
+        "targetAltitude": 23000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKHH",
+        "arrivalAirportIcao": "UKBB",
+        "originX": 364,
+        "originY": 100,
+        "destinationX": 97,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 364,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 60,
+        "callsign": "HUB512",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 364,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 184.0535542318314,
+        "groundSpeed": 0,
+        "targetHeading": 184.0535542318314,
+        "targetAltitude": 20000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "UKHH",
+        "arrivalAirportIcao": "UKKK",
+        "originX": 364,
+        "originY": 100,
+        "destinationX": 346,
+        "destinationY": 354,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 364,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 61,
+        "callsign": "HUB601",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 180,
+        "groundSpeed": 0,
+        "targetHeading": 180,
+        "targetAltitude": 24000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XAVO",
+        "arrivalAirportIcao": "XRIV",
+        "originX": 900,
+        "originY": 100,
+        "destinationX": 900,
+        "destinationY": 550,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 62,
+        "callsign": "HUB602",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 270,
+        "groundSpeed": 0,
+        "targetHeading": 270,
+        "targetAltitude": 28000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XAVO",
+        "arrivalAirportIcao": "XPRT",
+        "originX": 900,
+        "originY": 100,
+        "destinationX": 100,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 63,
+        "callsign": "HUB603",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 238.15242256527614,
+        "groundSpeed": 0,
+        "targetHeading": 238.15242256527614,
+        "targetAltitude": 25000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XAVO",
+        "arrivalAirportIcao": "UKLL",
+        "originX": 900,
+        "originY": 100,
+        "destinationX": 475,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 64,
+        "callsign": "HUB604",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 251.80083494695458,
+        "groundSpeed": 0,
+        "targetHeading": 251.80083494695458,
+        "targetAltitude": 30000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XAVO",
+        "arrivalAirportIcao": "UKBB",
+        "originX": 900,
+        "originY": 100,
+        "destinationX": 97,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 65,
+        "callsign": "HUB605",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 245.36931330218715,
+        "groundSpeed": 0,
+        "targetHeading": 245.36931330218715,
+        "targetAltitude": 27000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XAVO",
+        "arrivalAirportIcao": "UKKK",
+        "originX": 900,
+        "originY": 100,
+        "destinationX": 346,
+        "destinationY": 354,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 66,
+        "callsign": "HUB606",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 257.082187156066,
+        "groundSpeed": 0,
+        "targetHeading": 257.082187156066,
+        "targetAltitude": 26000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XAVO",
+        "arrivalAirportIcao": "UKOO",
+        "originX": 900,
+        "originY": 100,
+        "destinationX": 355,
+        "destinationY": 225,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 67,
+        "callsign": "HUB607",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 270,
+        "groundSpeed": 0,
+        "targetHeading": 270,
+        "targetAltitude": 26000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XAVO",
+        "arrivalAirportIcao": "UKHH",
+        "originX": 900,
+        "originY": 100,
+        "destinationX": 364,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 68,
+        "callsign": "HUB608",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 270,
+        "groundSpeed": 0,
+        "targetHeading": 270,
+        "targetAltitude": 28000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XAVO",
+        "arrivalAirportIcao": "XPRT",
+        "originX": 900,
+        "originY": 100,
+        "destinationX": 100,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 69,
+        "callsign": "HUB609",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 238.15242256527614,
+        "groundSpeed": 0,
+        "targetHeading": 238.15242256527614,
+        "targetAltitude": 25000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XAVO",
+        "arrivalAirportIcao": "UKLL",
+        "originX": 900,
+        "originY": 100,
+        "destinationX": 475,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 70,
+        "callsign": "HUB610",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 251.80083494695458,
+        "groundSpeed": 0,
+        "targetHeading": 251.80083494695458,
+        "targetAltitude": 30000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XAVO",
+        "arrivalAirportIcao": "UKBB",
+        "originX": 900,
+        "originY": 100,
+        "destinationX": 97,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 71,
+        "callsign": "HUB611",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 245.36931330218715,
+        "groundSpeed": 0,
+        "targetHeading": 245.36931330218715,
+        "targetAltitude": 27000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XAVO",
+        "arrivalAirportIcao": "UKKK",
+        "originX": 900,
+        "originY": 100,
+        "destinationX": 346,
+        "destinationY": 354,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 72,
+        "callsign": "HUB612",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 257.082187156066,
+        "groundSpeed": 0,
+        "targetHeading": 257.082187156066,
+        "targetAltitude": 26000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XAVO",
+        "arrivalAirportIcao": "UKOO",
+        "originX": 900,
+        "originY": 100,
+        "destinationX": 355,
+        "destinationY": 225,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 73,
+        "callsign": "HUB701",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 550,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 299.3577535427913,
+        "groundSpeed": 0,
+        "targetHeading": 299.3577535427913,
+        "targetAltitude": 28000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XRIV",
+        "arrivalAirportIcao": "XPRT",
+        "originX": 900,
+        "originY": 550,
+        "destinationX": 100,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 550,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 74,
+        "callsign": "HUB702",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 550,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 293.636449537522,
+        "groundSpeed": 0,
+        "targetHeading": 293.636449537522,
+        "targetAltitude": 24000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XRIV",
+        "arrivalAirportIcao": "UKLL",
+        "originX": 900,
+        "originY": 550,
+        "destinationX": 475,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 550,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 75,
+        "callsign": "HUB703",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 550,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 283.041507935,
+        "groundSpeed": 0,
+        "targetHeading": 283.041507935,
+        "targetAltitude": 30000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XRIV",
+        "arrivalAirportIcao": "UKBB",
+        "originX": 900,
+        "originY": 550,
+        "destinationX": 97,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 550,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 76,
+        "callsign": "HUB704",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 550,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 289.4833014082194,
+        "groundSpeed": 0,
+        "targetHeading": 289.4833014082194,
+        "targetAltitude": 27000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XRIV",
+        "arrivalAirportIcao": "UKKK",
+        "originX": 900,
+        "originY": 550,
+        "destinationX": 346,
+        "destinationY": 354,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 550,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 77,
+        "callsign": "HUB705",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 550,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 300.808903450976,
+        "groundSpeed": 0,
+        "targetHeading": 300.808903450976,
+        "targetAltitude": 28000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XRIV",
+        "arrivalAirportIcao": "UKOO",
+        "originX": 900,
+        "originY": 550,
+        "destinationX": 355,
+        "destinationY": 225,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 550,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 78,
+        "callsign": "HUB706",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 550,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 310.0152144285997,
+        "groundSpeed": 0,
+        "targetHeading": 310.0152144285997,
+        "targetAltitude": 29000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XRIV",
+        "arrivalAirportIcao": "UKHH",
+        "originX": 900,
+        "originY": 550,
+        "destinationX": 364,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 550,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 79,
+        "callsign": "HUB707",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 550,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 0,
+        "groundSpeed": 0,
+        "targetHeading": 0,
+        "targetAltitude": 24000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XRIV",
+        "arrivalAirportIcao": "XAVO",
+        "originX": 900,
+        "originY": 550,
+        "destinationX": 900,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 550,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 80,
+        "callsign": "HUB708",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 550,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 293.636449537522,
+        "groundSpeed": 0,
+        "targetHeading": 293.636449537522,
+        "targetAltitude": 24000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XRIV",
+        "arrivalAirportIcao": "UKLL",
+        "originX": 900,
+        "originY": 550,
+        "destinationX": 475,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 550,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 81,
+        "callsign": "HUB709",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 550,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 283.041507935,
+        "groundSpeed": 0,
+        "targetHeading": 283.041507935,
+        "targetAltitude": 30000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XRIV",
+        "arrivalAirportIcao": "UKBB",
+        "originX": 900,
+        "originY": 550,
+        "destinationX": 97,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 550,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 82,
+        "callsign": "HUB710",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 550,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 289.4833014082194,
+        "groundSpeed": 0,
+        "targetHeading": 289.4833014082194,
+        "targetAltitude": 27000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XRIV",
+        "arrivalAirportIcao": "UKKK",
+        "originX": 900,
+        "originY": 550,
+        "destinationX": 346,
+        "destinationY": 354,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 550,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 83,
+        "callsign": "HUB711",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 550,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 300.808903450976,
+        "groundSpeed": 0,
+        "targetHeading": 300.808903450976,
+        "targetAltitude": 28000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XRIV",
+        "arrivalAirportIcao": "UKOO",
+        "originX": 900,
+        "originY": 550,
+        "destinationX": 355,
+        "destinationY": 225,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 550,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 84,
+        "callsign": "HUB712",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 900,
+        "coordY": 550,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 310.0152144285997,
+        "groundSpeed": 0,
+        "targetHeading": 310.0152144285997,
+        "targetAltitude": 29000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XRIV",
+        "arrivalAirportIcao": "UKHH",
+        "originX": 900,
+        "originY": 550,
+        "destinationX": 364,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 900,
+            "y": 550,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 85,
+        "callsign": "HUB801",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 100,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 125.14554549970607,
+        "groundSpeed": 0,
+        "targetHeading": 125.14554549970607,
+        "targetAltitude": 24000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XPRT",
+        "arrivalAirportIcao": "UKLL",
+        "originX": 100,
+        "originY": 100,
+        "destinationX": 475,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 100,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 86,
+        "callsign": "HUB802",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 100,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 180.6510603802295,
+        "groundSpeed": 0,
+        "targetHeading": 180.6510603802295,
+        "targetAltitude": 20000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XPRT",
+        "arrivalAirportIcao": "UKBB",
+        "originX": 100,
+        "originY": 100,
+        "destinationX": 97,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 100,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 87,
+        "callsign": "HUB803",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 100,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 135.9166542563853,
+        "groundSpeed": 0,
+        "targetHeading": 135.9166542563853,
+        "targetAltitude": 22000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XPRT",
+        "arrivalAirportIcao": "UKKK",
+        "originX": 100,
+        "originY": 100,
+        "destinationX": 346,
+        "destinationY": 354,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 100,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 88,
+        "callsign": "HUB804",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 100,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 116.1139126302907,
+        "groundSpeed": 0,
+        "targetHeading": 116.1139126302907,
+        "targetAltitude": 21000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XPRT",
+        "arrivalAirportIcao": "UKOO",
+        "originX": 100,
+        "originY": 100,
+        "destinationX": 355,
+        "destinationY": 225,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 100,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 89,
+        "callsign": "HUB805",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 100,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 90,
+        "groundSpeed": 0,
+        "targetHeading": 90,
+        "targetAltitude": 20000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XPRT",
+        "arrivalAirportIcao": "UKHH",
+        "originX": 100,
+        "originY": 100,
+        "destinationX": 364,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 100,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 90,
+        "callsign": "HUB806",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 100,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 90,
+        "groundSpeed": 0,
+        "targetHeading": 90,
+        "targetAltitude": 28000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XPRT",
+        "arrivalAirportIcao": "XAVO",
+        "originX": 100,
+        "originY": 100,
+        "destinationX": 900,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 100,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 91,
+        "callsign": "HUB807",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 100,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 119.35775354279127,
+        "groundSpeed": 0,
+        "targetHeading": 119.35775354279127,
+        "targetAltitude": 28000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XPRT",
+        "arrivalAirportIcao": "XRIV",
+        "originX": 100,
+        "originY": 100,
+        "destinationX": 900,
+        "destinationY": 550,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 100,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 92,
+        "callsign": "HUB808",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 100,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 180.6510603802295,
+        "groundSpeed": 0,
+        "targetHeading": 180.6510603802295,
+        "targetAltitude": 20000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XPRT",
+        "arrivalAirportIcao": "UKBB",
+        "originX": 100,
+        "originY": 100,
+        "destinationX": 97,
+        "destinationY": 364,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 100,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 93,
+        "callsign": "HUB809",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 100,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 135.9166542563853,
+        "groundSpeed": 0,
+        "targetHeading": 135.9166542563853,
+        "targetAltitude": 22000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XPRT",
+        "arrivalAirportIcao": "UKKK",
+        "originX": 100,
+        "originY": 100,
+        "destinationX": 346,
+        "destinationY": 354,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 100,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      },
+      {
+        "id": 94,
+        "callsign": "HUB810",
+        "modelId": 2,
+        "isActive": true,
+        "coordX": 100,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 116.1139126302907,
+        "groundSpeed": 0,
+        "targetHeading": 116.1139126302907,
+        "targetAltitude": 21000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XPRT",
+        "arrivalAirportIcao": "UKOO",
+        "originX": 100,
+        "originY": 100,
+        "destinationX": 355,
+        "destinationY": 225,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 100,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 2,
+          "modelName": "Airbus A320",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 39000,
+          "fuelCapacity": 19000,
+          "iconType": "A320"
+        }
+      },
+      {
+        "id": 95,
+        "callsign": "HUB811",
+        "modelId": 4,
+        "isActive": true,
+        "coordX": 100,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 90,
+        "groundSpeed": 0,
+        "targetHeading": 90,
+        "targetAltitude": 20000,
+        "plannedDepartureSpeed": 460,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XPRT",
+        "arrivalAirportIcao": "UKHH",
+        "originX": 100,
+        "originY": 100,
+        "destinationX": 364,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 100,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 4,
+          "modelName": "Airbus A321",
+          "category": "PASSENGER",
+          "cruiseSpeed": 460,
+          "maxAltitude": 39800,
+          "fuelCapacity": 23700,
+          "iconType": "A321"
+        }
+      },
+      {
+        "id": 96,
+        "callsign": "HUB812",
+        "modelId": 1,
+        "isActive": true,
+        "coordX": 100,
+        "coordY": 100,
+        "altitude": 0,
+        "fuelRemaining": 0,
+        "heading": 90,
+        "groundSpeed": 0,
+        "targetHeading": 90,
+        "targetAltitude": 28000,
+        "plannedDepartureSpeed": 450,
+        "operations": {
+          "phase": 0,
+          "runwayHeading": 0,
+          "holdingLeg": 0,
+          "manualHold": false,
+          "holdingAltitude": 0,
+          "arrivalDescentStarted": false,
+          "approachAligned": false
+        },
+        "departureAirportIcao": "XPRT",
+        "arrivalAirportIcao": "XAVO",
+        "originX": 100,
+        "originY": 100,
+        "destinationX": 900,
+        "destinationY": 100,
+        "hasManualHeadingOverride": false,
+        "trailTimer": 0,
+        "trailPoints": [
+          {
+            "x": 100,
+            "y": 100,
+            "altitude": 0
+          }
+        ],
+        "model": {
+          "id": 1,
+          "modelName": "Boeing 737-800",
+          "category": "PASSENGER",
+          "cruiseSpeed": 450,
+          "maxAltitude": 41000,
+          "fuelCapacity": 20894,
+          "iconType": "B738"
+        }
+      }
+    ]
+  }
+}

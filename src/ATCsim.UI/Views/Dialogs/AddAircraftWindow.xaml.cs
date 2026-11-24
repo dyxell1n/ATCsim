@@ -102,7 +102,6 @@ public partial class AddAircraftWindow : Window
         {
             Callsign = callsign,
             ModelId = model.Id,
-            FuelRemaining = model.FuelCapacity * 0.45m,
             Model = model
         };
         AircraftTracker.ScheduleDeparture(aircraft, dep.Airport, arr.Airport, alt, speed);

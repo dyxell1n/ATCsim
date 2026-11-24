@@ -8,8 +8,6 @@ namespace ATCsim.Core.Kinematics;
 /// </summary>
 public class AircraftTracker
 {
-    public event Action<Aircraft>? TelemetryUpdated;
-
     public static void ScheduleDeparture(Aircraft aircraft, Airport departure, Airport arrival,
         decimal targetAltitude, decimal departureSpeed)
     {
@@ -69,13 +67,10 @@ public class AircraftTracker
         // Update heading towards target if assigned
         aircraft.Heading = KinematicsCalculator.UpdateHeading(aircraft.Heading, aircraft.TargetHeading, dtSeconds);
 
-        // Update altitude towards target if assigned
         if (aircraft.TargetAltitude > 0 || verticalRate.HasValue)
         {
-            if (aircraft.Model is { MaxAltitude: > 0 } model)
-                aircraft.TargetAltitude = Math.Min(aircraft.TargetAltitude, model.MaxAltitude);
-            aircraft.Altitude = KinematicsCalculator.UpdateAltitude(aircraft.Altitude, aircraft.TargetAltitude,
-                dtSeconds, verticalRate ?? 1500m);
+            aircraft.TargetAltitude = AvailableAltitude(aircraft, aircraft.TargetAltitude);
+            aircraft.Altitude = NextAltitude(aircraft, aircraft.TargetAltitude, dtSeconds, verticalRate);
         }
 
         // Kinematics step
@@ -92,10 +87,10 @@ public class AircraftTracker
         aircraft.CoordY = (decimal)Math.Round(newY, 4);
 
         // Record breadcrumb trail point (recorded per simulation elapsed interval)
-        aircraft.TrailTimer += dtSeconds;
+        aircraft.TrailTimer = Math.Round(aircraft.TrailTimer + dtSeconds, 9);
         if (aircraft.TrailTimer >= 1.0)
         {
-            aircraft.TrailTimer = 0;
+            aircraft.TrailTimer %= 1;
             // Record if position shifted or list is empty
             if (aircraft.TrailPoints.Count == 0 ||
                 Math.Abs(aircraft.TrailPoints[^1].X - (double)aircraft.CoordX) > 1.5 ||
@@ -115,7 +110,13 @@ public class AircraftTracker
             decimal fuelBurn = AircraftPerformance.FuelBurnPerHour(aircraft.Model) * (decimal)dtSeconds / 3600m;
             aircraft.FuelRemaining = Math.Max(0m, aircraft.FuelRemaining - fuelBurn);
         }
-
-        TelemetryUpdated?.Invoke(aircraft);
     }
+
+    internal static decimal AvailableAltitude(Aircraft aircraft, decimal target) =>
+        aircraft.Model is { MaxAltitude: > 0 } model ? Math.Min(target, model.MaxAltitude) : target;
+
+    internal static decimal NextAltitude(Aircraft aircraft, decimal target, double seconds, decimal? verticalRate = null) =>
+        target > 0 || verticalRate.HasValue
+            ? KinematicsCalculator.UpdateAltitude(aircraft.Altitude, AvailableAltitude(aircraft, target), seconds, verticalRate ?? 1500m)
+            : aircraft.Altitude;
 }

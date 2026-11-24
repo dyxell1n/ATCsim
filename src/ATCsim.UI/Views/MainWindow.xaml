@@ -12,11 +12,20 @@
         WindowStartupLocation="CenterScreen"
         Background="#FFFFFF">
 
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Resources/AviationIcons.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+        </ResourceDictionary>
+    </Window.Resources>
+
     <Window.DataContext>
         <vm:MainViewModel/>
     </Window.DataContext>
 
-    <Grid>
+    <Grid IsEnabled="{Binding ControlsEnabled}">
         <Grid.RowDefinitions>
             <!-- 1. Top Simulator Controls Bar -->
             <RowDefinition Height="Auto"/>
@@ -37,21 +46,20 @@
                 </Grid.ColumnDefinitions>
 
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                <!-- Left Branding and Menus -->
-                <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="File" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#212529" Margin="0,0,16,0" Cursor="Hand"/>
-                    <Menu Background="Transparent" FontFamily="Montserrat, Segoe UI" FontSize="12"
-                          FontWeight="SemiBold" Foreground="#212529" Margin="0,0,16,0" VerticalAlignment="Center">
-                        <MenuItem Header="_View">
-                            <MenuItem Header="Show airport labels" IsCheckable="True"
-                                      IsChecked="{Binding Radar.ShowAirportLabels, Mode=TwoWay}"/>
-                        </MenuItem>
-                    </Menu>
-                    <TextBlock Text="Add" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#212529" Margin="0,0,16,0" Cursor="Hand"/>
-                    <TextBlock Text="Simulation" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#212529" Margin="0,0,24,0" Cursor="Hand"/>
-                    <TextBlock Text="ATCsim / Tactical Console"
-                               FontFamily="Montserrat, Segoe UI" FontSize="11" Foreground="#868E96" VerticalAlignment="Center"/>
-                </StackPanel>
+                <Menu Grid.ColumnSpan="2" HorizontalAlignment="Left" Background="Transparent" FontFamily="Montserrat, Segoe UI" FontSize="12"
+                      FontWeight="SemiBold" Foreground="#212529" VerticalAlignment="Center">
+                    <MenuItem Header="_File">
+                        <MenuItem Header="Import map save…" Command="{Binding ImportSaveCommand}"/>
+                        <MenuItem Header="Export map save…" Command="{Binding ExportSaveCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="Import aircraft preset…" Command="{Binding ImportPresetCommand}"/>
+                        <MenuItem Header="Export aircraft preset…" Command="{Binding ExportPresetCommand}"/>
+                    </MenuItem>
+                    <MenuItem Header="_View">
+                        <MenuItem Header="Show airport labels" IsCheckable="True"
+                                  IsChecked="{Binding Radar.ShowAirportLabels, Mode=TwoWay}"/>
+                    </MenuItem>
+                </Menu>
 
                 <!-- Original project logo; viewport trims only the surrounding white margin. -->
                 <Image Grid.Row="1" Grid.Column="0" Width="140" Height="76"
@@ -69,7 +77,7 @@
 
                 <!-- Right Simulator Controls -->
                 <WrapPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0"
-                           VerticalAlignment="Center">
+                           HorizontalAlignment="Right" VerticalAlignment="Center">
                     <!-- Seed Input -->
                     <Border Background="#F8F9FA" BorderBrush="#CED4DA" BorderThickness="1" CornerRadius="0" Padding="6,2" Margin="0,0,8,4">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -103,9 +111,10 @@
                         </StackPanel>
                     </Button>
 
-                    <!-- Speed Toggle (1x, 2x, 4x) -->
+                    <!-- Simulation speed -->
                     <Button Command="{Binding ToggleSpeedCommand}" 
-                            Content="{Binding SpeedLabel}" 
+                            Content="{Binding SpeedLabel}" MinWidth="50"
+                            ToolTip="Simulation speed (1x, 2x, 4x, 8x, 16x)"
                             Background="#F1F3F5" Foreground="#212529" 
                             BorderBrush="#CED4DA" BorderThickness="1" 
                             FontFamily="Montserrat, Segoe UI" FontWeight="Bold" FontSize="11"
@@ -186,6 +195,9 @@
                         <Path Data="{Binding FlightIconGeometry}" Fill="#212529" Stretch="Uniform"
                               Width="15" Height="15" Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding FlightCallsign}" FontFamily="Montserrat, Segoe UI" FontSize="13" FontWeight="Bold" Foreground="#212529" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <Image Source="{StaticResource UkrainianFlag}" Width="15" Height="10" Margin="0,0,4,0"
+                               Visibility="{Binding IsMriyaSelected, Converter={StaticResource BoolToVisibility}}"
+                               AutomationProperties.Name="Прапор України"/>
                         <TextBlock Text="{Binding FlightModel}" FontFamily="Segoe UI" FontSize="12" Foreground="#495057" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <Border Background="#EBFBEE" BorderBrush="#D3F9D8" BorderThickness="1" CornerRadius="0" Padding="6,2" Margin="0,0,12,0">
                             <TextBlock Text="{Binding FlightStatusBadge}" FontFamily="Montserrat, Segoe UI" FontSize="10" FontWeight="Bold" Foreground="#2B8A3E"/>
@@ -272,14 +284,14 @@
             <Border Grid.Column="2" Background="#FFFFFF" BorderBrush="#E9ECEF" BorderThickness="1,0,0,0">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <!-- Inspector (Top Half) -->
-                        <RowDefinition Height="Auto"/>
-                        <!-- System & Comm Logs (Bottom Half) -->
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="4*"/>
+                        <RowDefinition Height="1.5*"/>
                     </Grid.RowDefinitions>
 
                     <!-- Flight & Airport Inspector -->
-                    <StackPanel Grid.Row="0" Margin="16" DataContext="{Binding Inspector}">
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled" DataContext="{Binding Inspector}">
+                    <StackPanel Margin="16">
                         <!-- Tab Switcher -->
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
@@ -359,7 +371,13 @@
 
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Text="{Binding Callsign}" FontFamily="Montserrat, Segoe UI" FontSize="20" FontWeight="ExtraBold" Foreground="#212529"/>
-                                        <TextBlock Text="{Binding ModelName}" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#343A40" Margin="0,2,0,0"/>
+                                        <DockPanel Margin="0,2,0,0">
+                                            <Image Source="{StaticResource UkrainianFlag}" Width="15" Height="10" Margin="0,0,4,0"
+                                                   Visibility="{Binding IsMriya, Converter={StaticResource BoolToVisibility}}"
+                                                   AutomationProperties.Name="Прапор України"/>
+                                            <TextBlock Text="{Binding ModelName}" FontFamily="Montserrat, Segoe UI"
+                                                       FontSize="12" FontWeight="SemiBold" Foreground="#343A40" TextTrimming="CharacterEllipsis"/>
+                                        </DockPanel>
                                         <TextBlock Text="{Binding OperatorName, StringFormat={}Operator: {0}}" FontFamily="Segoe UI" FontSize="11" Foreground="#868E96"/>
                                     </StackPanel>
 
@@ -466,9 +484,20 @@
                                     </Grid>
                                     <TextBlock Text="{Binding SelectedAirport.Name}" FontFamily="Montserrat, Segoe UI" FontSize="12" FontWeight="SemiBold" Foreground="#343A40"/>
                                     <Separator Margin="0,8" Background="#E9ECEF"/>
+                                    <TextBlock Text="{Binding GroundTrafficSummary}" TextWrapping="Wrap"
+                                               FontFamily="Segoe UI" FontSize="9" Foreground="#495057"/>
+                                    <Border Margin="0,8,0,3" BorderBrush="#CED4DA" BorderThickness="1" Background="#F1F3F5">
+                                        <Viewbox Stretch="Uniform" MaxHeight="144" HorizontalAlignment="Stretch"
+                                                 AutomationProperties.Name="Airport runway and ground traffic diagram">
+                                            <Grid Width="320" Height="144">
+                                                <views:DrawingLayer Drawing="{Binding AirportLayout}"/>
+                                                <views:DrawingLayer Drawing="{Binding AirportTraffic}"/>
+                                            </Grid>
+                                        </Viewbox>
+                                    </Border>
                                     <TextBlock Text="RUNWAYS:" FontFamily="Montserrat" FontSize="9" FontWeight="Bold" Foreground="#868E96"/>
                                     <TextBlock Text="{Binding SelectedAirport.RunwaysText}" FontFamily="Segoe UI" FontSize="11" Foreground="#212529" Margin="0,2,0,6"/>
-                                    
+
                                     <TextBlock Text="ELEVATION &amp; CAPACITY:" FontFamily="Montserrat" FontSize="9" FontWeight="Bold" Foreground="#868E96"/>
                                     <TextBlock Text="{Binding SelectedAirport.ElevationText, StringFormat={}Elevation: {0}}" FontFamily="Segoe UI" FontSize="11" Foreground="#495057"/>
                                     <TextBlock Text="{Binding SelectedAirport.CapacityText, StringFormat={}Stands: {0}}" FontFamily="Segoe UI" FontSize="11" Foreground="#495057"/>
@@ -482,6 +511,7 @@
                             </Border>
                         </StackPanel>
                     </StackPanel>
+                    </ScrollViewer>
 
                     <!-- System & Comm Logs Component (Bottom Half) -->
                     <Border Grid.Row="1" BorderBrush="#E9ECEF" BorderThickness="0,1,0,0">
@@ -503,6 +533,7 @@
 
                 <!-- Simulation clocks and weather -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding ActiveTargetsText}" FontFamily="Consolas, Segoe UI" FontSize="10" FontWeight="Bold" Foreground="#212529" Margin="0,0,16,0"/>
                     <TextBlock Text="SIM TIME: " FontFamily="Montserrat, Segoe UI" FontSize="10" FontWeight="Bold" Foreground="#868E96"/>
                     <TextBlock Text="{Binding SimTimeText}" FontFamily="Consolas, Segoe UI" FontSize="10" FontWeight="Bold" Foreground="#212529" Margin="0,0,16,0"/>
 

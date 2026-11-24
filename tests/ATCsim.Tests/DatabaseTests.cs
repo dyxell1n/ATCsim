@@ -173,6 +173,22 @@ public class DatabaseTests : IDisposable
     }
 
     [Fact]
+    public void EditingAirportPersistsAddedAndRemovedRunways()
+    {
+        var airport = _repoManager.Airports.GetAll().First();
+        var previous = Assert.Single(airport.Runways);
+        airport.Runways = [new() { Designator = "09L", Angle = 90, Length = 3400 },
+            new() { Designator = "27R", Angle = 270, Length = 3400, IsAvailable = false }];
+
+        _repoManager.Airports.UpdateAirport(airport);
+
+        var restored = _repoManager.Airports.GetAll().Single(a => a.Id == airport.Id);
+        Assert.Equal(2, restored.Runways.Count);
+        Assert.DoesNotContain(restored.Runways, runway => runway.Id == previous.Id);
+        Assert.Contains(restored.Runways, runway => runway.Designator == "27R" && !runway.IsAvailable);
+    }
+
+    [Fact]
     public void RegeneratingSector_UpdatesAirportRunwayAndWeatherGeometry()
     {
         var generator = new ATCsim.Core.WorldGeneration.WorldGenerator();

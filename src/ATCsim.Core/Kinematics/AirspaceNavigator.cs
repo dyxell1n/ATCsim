@@ -28,6 +28,26 @@ internal static class AirspaceNavigator
         return Along(position, heading, distance);
     }
 
+    public static double EscapeHeading(Vector2D position, decimal altitude, double heading,
+        IReadOnlyList<WeatherZone> zones)
+    {
+        double nearestEdge = double.PositiveInfinity;
+        var center = position;
+        foreach (var zone in zones)
+        {
+            if (!zone.BlocksFlight || zone.Radius <= 0 || altitude < zone.MinAltitude || altitude > zone.MaxAltitude)
+                continue;
+            var candidate = new Vector2D((double)zone.CenterX, (double)zone.CenterY);
+            double distance = candidate.DistanceTo(position);
+            if (distance > (double)zone.Radius + 1) continue;
+            double edge = Math.Abs(distance - (double)zone.Radius);
+            if (edge >= nearestEdge) continue;
+            nearestEdge = edge;
+            center = candidate;
+        }
+        return center == position ? heading : Bearing(center, position);
+    }
+
     public static double WindCorrectedHeading(Vector2D from, Vector2D to, decimal speed, decimal wind, int direction)
     {
         double course = Bearing(from, to);
@@ -44,7 +64,7 @@ internal static class AirspaceNavigator
             if (!zone.BlocksFlight || zone.Radius <= 0) continue;
             decimal floor = zone.MinAltitude ?? 0;
             decimal ceiling = zone.MaxAltitude ?? decimal.MaxValue;
-            if (Math.Max(altitude, targetAltitude) < floor || Math.Min(altitude, targetAltitude) > ceiling) continue;
+            if (ceiling < floor || Math.Max(altitude, targetAltitude) < floor || Math.Min(altitude, targetAltitude) > ceiling) continue;
 
             double start = 0;
             double end = 1;
@@ -56,24 +76,31 @@ internal static class AirspaceNavigator
                 end = Math.Min(1, Math.Max(floorFraction, ceilingFraction));
             }
 
-            double dx = to.X - from.X;
-            double dy = to.Y - from.Y;
-            double offsetX = from.X - (double)zone.CenterX;
-            double offsetY = from.Y - (double)zone.CenterY;
-            double lengthSquared = dx * dx + dy * dy;
-            double dot = offsetX * dx + offsetY * dy;
-            double radius = (double)zone.Radius + margin;
-            double radiusSquared = radius * radius;
-            double initialDistanceSquared = offsetX * offsetX + offsetY * offsetY;
-            if (allowExit && start == 0 && initialDistanceSquared < radiusSquared && dot >= 0 && lengthSquared > 0)
-                continue;
-
-            double nearest = lengthSquared > 0 ? Math.Clamp(-dot / lengthSquared, start, end) : start;
-            double nearestX = offsetX + dx * nearest;
-            double nearestY = offsetY + dy * nearest;
-            if (nearestX * nearestX + nearestY * nearestY <= radiusSquared) return false;
+            if (!ClearOfZone(from, to, zone, margin, allowExit, start, end)) return false;
         }
         return true;
+    }
+
+    private static bool ClearOfZone(Vector2D from, Vector2D to, WeatherZone zone, double margin,
+        bool allowExit, double start = 0, double end = 1)
+    {
+        double dx = to.X - from.X;
+        double dy = to.Y - from.Y;
+        double offsetX = from.X - (double)zone.CenterX;
+        double offsetY = from.Y - (double)zone.CenterY;
+        double lengthSquared = dx * dx + dy * dy;
+        double dot = offsetX * dx + offsetY * dy;
+        double radius = (double)zone.Radius + margin;
+        double radiusSquared = radius * radius;
+        double initialDistanceSquared = offsetX * offsetX + offsetY * offsetY;
+        if (allowExit && start == 0 && initialDistanceSquared < radiusSquared &&
+            ((dot >= 0 && lengthSquared > 0) || end < 1))
+            return true;
+
+        double nearest = lengthSquared > 0 ? Math.Clamp(-dot / lengthSquared, start, end) : start;
+        double nearestX = offsetX + dx * nearest;
+        double nearestY = offsetY + dy * nearest;
+        return nearestX * nearestX + nearestY * nearestY > radiusSquared;
     }
 
     public static Vector2D? NextWaypoint(Vector2D from, Vector2D goal, decimal altitude, decimal targetAltitude,
@@ -81,9 +108,17 @@ internal static class AirspaceNavigator
     {
         decimal low = Math.Min(altitude, targetAltitude);
         decimal high = Math.Max(altitude, targetAltitude);
-        var barriers = zones.Where(zone => zone.BlocksFlight && zone.Radius > 0
-            && (zone.MinAltitude ?? 0) <= high && (zone.MaxAltitude ?? decimal.MaxValue) >= low).ToArray();
-        if (Clear(from, goal, allowExit: true)) return goal;
+        bool Applies(WeatherZone zone) => zone.BlocksFlight && zone.Radius > 0 &&
+            (zone.MinAltitude ?? 0) <= high && (zone.MaxAltitude ?? decimal.MaxValue) >= low;
+        bool direct = true;
+        foreach (var zone in zones)
+        {
+            if (!Applies(zone) || ClearOfZone(from, goal, zone, margin, allowExit: true)) continue;
+            direct = false;
+            break;
+        }
+        if (direct) return goal;
+        var barriers = zones.Where(Applies).ToArray();
 
         const int sides = 16;
         var nodes = new List<Vector2D> { from, goal };
@@ -124,10 +159,7 @@ internal static class AirspaceNavigator
         bool Clear(Vector2D start, Vector2D end, bool allowExit = false)
         {
             foreach (var zone in barriers)
-            {
-                decimal checkAltitude = zone.MinAltitude ?? 0;
-                if (!IsClear(start, end, checkAltitude, checkAltitude, [zone], margin, allowExit)) return false;
-            }
+                if (!ClearOfZone(start, end, zone, margin, allowExit)) return false;
             return true;
         }
     }

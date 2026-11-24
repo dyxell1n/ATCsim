@@ -10,16 +10,32 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
 {
     private const int FinalDistance = 10;
     private const int ApproachEntryDistance = 14;
+    private const decimal DescentFeetPerSecond = 25m;
     private const decimal GlideSlope = 318m;
     private const decimal InitialApproachAltitude = FinalDistance * GlideSlope;
+    private readonly TrafficSeparation _trafficSeparation = new();
+    private readonly HashSet<Aircraft> _avoidingTraffic = [];
     private readonly Dictionary<Aircraft, string> _lastAdvisory = [];
 
-    public void Reset() => _lastAdvisory.Clear();
+    public void Reset()
+    {
+        _lastAdvisory.Clear();
+        _avoidingTraffic.Clear();
+    }
+
+    public void BeginStep(IReadOnlyList<Aircraft> traffic, double seconds) =>
+        _trafficSeparation.BeginStep(traffic, seconds, weather.CurrentWindSpeed, weather.CurrentWindDirection);
 
     public void Update(Aircraft aircraft, IReadOnlyList<Aircraft> traffic, IReadOnlyList<Airport> airports,
         DateTime time, double seconds, AircraftTracker tracker)
     {
-        if (!aircraft.IsActive) return;
+        if (!aircraft.IsActive)
+        {
+            if (aircraft.TrailPoints.Count > 0 && aircraft.Operations.LandedAt is { } touchdown &&
+                time - touchdown >= TimeSpan.FromSeconds(5))
+                aircraft.TrailPoints.Clear();
+            return;
+        }
 
         var ops = aircraft.Operations;
         Airport? departure = airports.FirstOrDefault(airport => airport.IcaoCode == aircraft.DepartureAirportIcao);
@@ -29,14 +45,28 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
 
         if (aircraft.PlannedDepartureSpeed is { } speed)
         {
-            if (departure == null || !ReleaseDeparture(aircraft, departure, destination, speed, traffic, time)) return;
+            if (departure == null) return;
+            bool clearanceValid = ops.Phase == FlightPhase.Departing && departure.Runways.Any(runway =>
+                runway.IsAvailable && runway.Designator == ops.RunwayDesignator && runway.Angle == ops.RunwayHeading);
+            if (!clearanceValid)
+            {
+                if (ops.Phase == FlightPhase.Departing)
+                {
+                    ops.Phase = FlightPhase.EnRoute;
+                    ops.RunwayClearAt = null;
+                }
+                if (!PrepareFuel(aircraft, departure, destination, speed, seconds, traffic) ||
+                    !ReleaseDeparture(aircraft, departure, destination, speed, traffic, time)) return;
+            }
+            position = AirspaceNavigator.Position(aircraft);
         }
         else if (!aircraft.IsAirborne) return;
 
         if (ops.Phase == FlightPhase.Departing && departure != null)
         {
-            Vector2D runwayExit = AirspaceNavigator.Along(At(departure), ops.RunwayHeading, 3);
-            if (position.DistanceTo(At(departure)) < 2.9)
+            var runwayCenter = AssignedRunwayCenter(departure, ops);
+            Vector2D runwayExit = AirspaceNavigator.Along(runwayCenter, ops.RunwayHeading, 3);
+            if (position.DistanceTo(runwayCenter) < 2.9)
             {
                 Fly(aircraft, runwayExit, departure, seconds, tracker, straightIn: true);
                 return;
@@ -47,7 +77,7 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
 
         if (ops.Phase == FlightPhase.MissedApproach && arrival != null)
         {
-            var threshold = At(arrival);
+            var threshold = AssignedRunwayCenter(arrival, ops);
             var missedFix = AirspaceNavigator.Along(threshold, ops.RunwayHeading, 8);
             bool fixClear = AirspaceNavigator.IsClear(missedFix, missedFix, aircraft.Altitude,
                 aircraft.TargetAltitude, weather.ActiveZones, 5);
@@ -69,17 +99,32 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
             return;
         }
 
-        if (arrival != null && (ops.Phase is FlightPhase.ArrivalQueue or FlightPhase.Holding ||
-            !aircraft.HasManualHeadingOverride && position.DistanceTo(destination) <= ArrivalDistance(aircraft, destination)))
+        if (arrival != null)
         {
-            SequenceArrival(aircraft, arrival, traffic, position, time, seconds, tracker);
-            return;
+            double distance = position.DistanceTo(destination);
+            double arrivalRange = Math.Max(32, RestrictedExtent(destination, aircraft.Altitude) + 25);
+            if (ops.Phase is FlightPhase.ArrivalQueue or FlightPhase.Holding ||
+                !aircraft.HasManualHeadingOverride && distance <= arrivalRange)
+            {
+                SequenceArrival(aircraft, arrival, traffic, position, time, seconds, tracker);
+                return;
+            }
+            if (!aircraft.HasManualHeadingOverride && !ops.ArrivalDescentStarted &&
+                aircraft.Altitude > InitialApproachAltitude &&
+                distance <= arrivalRange + DescentDistance(aircraft, aircraft.GroundSpeed))
+            {
+                ops.ArrivalDescentStarted = true;
+                Say(aircraft, arrival, "start descent for arrival", "Leaving cruise altitude for arrival");
+            }
         }
 
         Vector2D goal = aircraft.HasManualHeadingOverride
             ? AirspaceNavigator.HeadingGoal(position, aircraft.TargetHeading, weather.ActiveZones)
             : destination;
-        Fly(aircraft, goal, arrival ?? departure, seconds, tracker);
+        decimal? descent = ops.ArrivalDescentStarted && !aircraft.HasManualHeadingOverride
+            ? Math.Min(aircraft.TargetAltitude > 0 ? aircraft.TargetAltitude : aircraft.Altitude, InitialApproachAltitude)
+            : null;
+        Fly(aircraft, goal, arrival ?? departure, seconds, tracker, altitudeOverride: descent);
     }
 
     public bool SetHeading(Aircraft aircraft, Airport? airport, double heading)
@@ -122,25 +167,64 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
         Say(aircraft, airport, $"{verb} and maintain {altitude:0} feet", $"{verb} and maintain {altitude:0} feet");
     }
 
+    private bool PrepareFuel(Aircraft aircraft, Airport airport, Vector2D destination, decimal speed, double seconds,
+        IReadOnlyList<Aircraft> traffic)
+    {
+        var origin = At(airport);
+        var ops = aircraft.Operations;
+        decimal required = ops.DepartureFuelKg ??= AircraftPerformance.DepartureFuel(aircraft.Model,
+            origin.DistanceTo(destination), speed, weather.CurrentWindSpeed, weather.CurrentWindDirection,
+            AirspaceNavigator.Bearing(origin, destination),
+            traffic.Count(other => other != aircraft && other.IsActive &&
+                other.ArrivalAirportIcao == aircraft.ArrivalAirportIcao));
+        decimal capacity = AircraftPerformance.FuelCapacity(aircraft.Model);
+        if (required > capacity)
+        {
+            Advisory(aircraft, airport, $"hold position, route needs {required:0} kg of fuel", "Route exceeds fuel capacity");
+            return false;
+        }
+        if (aircraft.FuelRemaining >= required) return true;
+
+        if (ops.Phase != FlightPhase.Refueling)
+        {
+            ops.Phase = FlightPhase.Refueling;
+            radio.AddSystemLog("GROUND", $"{aircraft.Callsign} at {airport.IcaoCode}: refueling to {required:0} kg.");
+        }
+        aircraft.FuelRemaining = Math.Min(required, aircraft.FuelRemaining + capacity / 90m * (decimal)seconds);
+        if (aircraft.FuelRemaining < required) return false;
+
+        ops.Phase = FlightPhase.EnRoute;
+        radio.AddSystemLog("GROUND", $"{aircraft.Callsign} at {airport.IcaoCode}: {required:0} kg loaded including reserve.");
+        return true;
+    }
+
     private bool ReleaseDeparture(Aircraft aircraft, Airport airport, Vector2D destination, decimal speed,
         IReadOnlyList<Aircraft> traffic, DateTime time)
     {
-        var threshold = At(airport);
-        var runway = AvailableRunways(airport, AirspaceNavigator.Bearing(threshold, destination))
-            .FirstOrDefault(candidate => AirspaceNavigator.IsClear(threshold,
-                AirspaceNavigator.Along(threshold, candidate.Angle, 3),
-                0, (decimal)(3 * 3600 / Math.Max(60, (double)speed) * 25), weather.ActiveZones, 1));
-        bool busy = RunwayBusy(airport, traffic, time, aircraft);
-        var arrivalReady = !busy && traffic.Any(other => other.IsAirborne && other.ArrivalAirportIcao == airport.IcaoCode &&
-            other.Operations.ArrivalQueuedAt.HasValue && !other.Operations.ManualHold &&
-            FindApproachRunway(other, airport) != null);
-        if (runway == null || arrivalReady || busy || !separation.CanDepart(aircraft, traffic))
+        var course = AirspaceNavigator.Bearing(At(airport), destination);
+        var runways = AvailableRunways(airport, course)
+            .Where(candidate => ClearForDeparture(candidate, airport, speed)).ToArray();
+        var runway = runways.FirstOrDefault(candidate =>
+            !RunwayBusy(airport, candidate, traffic, time, aircraft) &&
+            separation.CanDepart(aircraft, traffic, RunwayLayout.Center(airport, candidate)) &&
+            !traffic.Any(other => other.IsAirborne && other.ArrivalAirportIcao == airport.IcaoCode &&
+                other.Operations.ArrivalQueuedAt.HasValue && !other.Operations.ManualHold &&
+                FindApproachRunway(other, airport) is { } arrival &&
+                RunwayLayout.SharesProtection(candidate, arrival.Runway) &&
+                (FuelEndurance(other) <= 0.5m || AirspaceNavigator.Position(other).DistanceTo(
+                    AirspaceNavigator.Along(RunwayLayout.Center(airport, arrival.Runway),
+                        arrival.Runway.Angle + 180, arrival.EntryDistance)) <= 12)));
+        if (runway == null)
         {
-            string message = runway == null ? "hold position, departure unavailable" : $"hold short of runway {runway.Designator}";
-            Advisory(aircraft, airport, message, runway == null ? "Holding position" : $"Holding short of runway {runway.Designator}");
+            string message = runways.Length == 0 ? "hold position, departure unavailable"
+                : $"hold short of runway {runways[0].Designator}";
+            Advisory(aircraft, airport, message, runways.Length == 0 ? "Holding position" : $"Holding short of runway {runways[0].Designator}");
             return false;
         }
 
+        var center = RunwayLayout.Center(airport, runway);
+        aircraft.CoordX = (decimal)center.X;
+        aircraft.CoordY = (decimal)center.Y;
         var ops = aircraft.Operations;
         ops.Phase = FlightPhase.Departing;
         ops.RunwayDesignator = runway.Designator;
@@ -161,27 +245,25 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
         ops.ArrivalQueuedAt ??= time;
         if (ops.HoldingPattern is { } activePattern && !IsHoldingPatternClear(activePattern, ops.HoldingAltitude))
             ops.HoldingPattern = null;
-        bool patternReady = ops.HoldingPattern == null ||
-            (ops.HoldingLeg == 0 && position.DistanceTo(ops.HoldingPattern[0]) < 0.35);
-        bool runwayBusy = RunwayBusy(airport, traffic, time, aircraft);
-        bool earlierArrival = !runwayBusy && !ops.ManualHold && patternReady && traffic.Any(other => !ReferenceEquals(other, aircraft) && other.IsAirborne &&
+        var approach = ops.ManualHold ? null : FindApproachRunway(aircraft, airport,
+            candidate => !RunwayBusy(airport, candidate, traffic, time, aircraft, arriving: true));
+        if (approach is { } clearance && !traffic.Any(other => other != aircraft && other.IsAirborne &&
             other.ArrivalAirportIcao == airport.IcaoCode && !other.Operations.ManualHold &&
             other.Operations.ArrivalQueuedAt is { } otherTime &&
-            (otherTime < ops.ArrivalQueuedAt || otherTime == ops.ArrivalQueuedAt && other.Id < aircraft.Id) &&
-            FindApproachRunway(other, airport) != null);
-
-        if (!ops.ManualHold && patternReady && !earlierArrival && !runwayBusy &&
-            FindApproachRunway(aircraft, airport) is { } runway)
+            EarlierArrival(other, otherTime, aircraft, ops.ArrivalQueuedAt.Value) &&
+            FindApproachRunway(other, airport, candidate => RunwayLayout.SharesProtection(candidate, clearance.Runway) &&
+                !RunwayBusy(airport, candidate, traffic, time, other, arriving: true)) != null))
         {
             ops.Phase = FlightPhase.Approach;
-            ops.RunwayDesignator = runway.Designator;
-            ops.RunwayHeading = runway.Angle;
-            ops.ApproachAligned = false;
+            ops.RunwayDesignator = clearance.Runway.Designator;
+            ops.RunwayHeading = clearance.Runway.Angle;
+            ops.ApproachEntryDistanceNm = clearance.EntryDistance;
+            ops.ApproachAligned = clearance.StraightIn;
             ops.HoldingPattern = null;
             aircraft.TargetAltitude = InitialApproachAltitude;
             _lastAdvisory.Remove(aircraft);
-            Say(aircraft, airport, $"cleared approach runway {runway.Designator}, maintain {InitialApproachAltitude:0} feet until established",
-                $"Cleared approach runway {runway.Designator}, {InitialApproachAltitude:0} feet until established");
+            Say(aircraft, airport, $"cleared approach runway {clearance.Runway.Designator}, maintain {InitialApproachAltitude:0} feet until established",
+                $"Cleared approach runway {clearance.Runway.Designator}, {InitialApproachAltitude:0} feet until established");
             AdvanceApproach(aircraft, airport, position, time, seconds, tracker);
             return;
         }
@@ -190,7 +272,7 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
         {
             ops.Phase = FlightPhase.Holding;
             ops.HoldingAltitude = HoldingAltitude(aircraft, traffic);
-            ops.HoldingPattern = BuildHoldingPattern(aircraft, airport, position, ops.HoldingAltitude);
+            ops.HoldingPattern = BuildHoldingPattern(aircraft, airport, position, ops.HoldingAltitude, traffic);
             ops.HoldingLeg = 0;
             if (ops.HoldingPattern != null)
             {
@@ -219,11 +301,26 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
         Fly(aircraft, nextFix, airport, seconds, tracker);
     }
 
+    private static decimal FuelEndurance(Aircraft aircraft)
+    {
+        decimal burn = AircraftPerformance.FuelBurnPerHour(aircraft.Model);
+        return burn > 0 ? aircraft.FuelRemaining / burn : decimal.MaxValue;
+    }
+
+    private static bool EarlierArrival(Aircraft other, DateTime otherTime, Aircraft aircraft, DateTime queuedAt)
+    {
+        decimal otherEndurance = FuelEndurance(other);
+        decimal endurance = FuelEndurance(aircraft);
+        if (otherEndurance != endurance && Math.Min(otherEndurance, endurance) <= 0.5m)
+            return otherEndurance < endurance;
+        return otherTime < queuedAt || otherTime == queuedAt && other.Id < aircraft.Id;
+    }
+
     private void AdvanceApproach(Aircraft aircraft, Airport airport, Vector2D position,
         DateTime time, double seconds, AircraftTracker tracker)
     {
         var ops = aircraft.Operations;
-        Vector2D threshold = At(airport);
+        Vector2D threshold = AssignedRunwayCenter(airport, ops);
         Vector2D finalFix = AirspaceNavigator.Along(threshold, ops.RunwayHeading + 180, FinalDistance);
         if (!airport.Runways.Any(runway => runway.IsAvailable && runway.Designator == ops.RunwayDesignator && runway.Angle == ops.RunwayHeading)
             || !AirspaceNavigator.IsClear(finalFix, threshold, InitialApproachAltitude, 0, weather.ActiveZones, 0.25))
@@ -239,8 +336,8 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
             aircraft.TargetAltitude = InitialApproachAltitude;
             if (!ops.ApproachAligned)
             {
-                Vector2D entry = AirspaceNavigator.Along(threshold, ops.RunwayHeading + 180, ApproachEntryDistance);
-                if (position.DistanceTo(entry) > 0.35)
+                Vector2D entry = AirspaceNavigator.Along(threshold, ops.RunwayHeading + 180, ops.ApproachEntryDistanceNm ?? ApproachEntryDistance);
+                if (position.DistanceTo(entry) > 0.65)
                 {
                     Fly(aircraft, entry, airport, seconds, tracker);
                     return;
@@ -265,12 +362,19 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
         double distance = position.DistanceTo(threshold);
         if (distance <= 0.25 && aircraft.Altitude <= 120)
         {
-            aircraft.CoordX = airport.CoordX;
-            aircraft.CoordY = airport.CoordY;
+            if (!AirspaceNavigator.IsClear(position, threshold, aircraft.Altitude, 0, weather.ActiveZones))
+            {
+                GoAround(aircraft, airport, time);
+                return;
+            }
+            aircraft.TrailPoints.Add(new(threshold.X, threshold.Y, 0));
+            ops.LandedAt = time;
+            aircraft.CoordX = (decimal)threshold.X;
+            aircraft.CoordY = (decimal)threshold.Y;
             aircraft.GroundSpeed = aircraft.Altitude = aircraft.TargetAltitude = 0;
             aircraft.IsActive = false;
             ops.Phase = FlightPhase.Landed;
-            ops.RunwayClearAt = time.AddSeconds(45 + WakeSeconds(aircraft));
+            ops.RunwayClearAt = time.AddSeconds(FlightOperationsState.TaxiInSeconds + WakeSeconds(aircraft));
             Say(aircraft, airport, "vacate runway when able", "Vacating runway");
             return;
         }
@@ -294,14 +398,15 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
     }
 
     private void Fly(Aircraft aircraft, Vector2D goal, Airport? airport, double seconds,
-        AircraftTracker tracker, bool straightIn = false, bool final = false)
+        AircraftTracker tracker, bool straightIn = false, bool final = false, decimal? altitudeOverride = null)
     {
         Vector2D position = AirspaceNavigator.Position(aircraft);
         decimal speed = aircraft.PlannedDepartureSpeed ?? aircraft.GroundSpeed;
-        decimal nextAltitude = KinematicsCalculator.UpdateAltitude(aircraft.Altitude, aircraft.TargetAltitude, seconds);
+        decimal targetAltitude = AircraftTracker.AvailableAltitude(aircraft, altitudeOverride ?? aircraft.TargetAltitude);
+        decimal? verticalRate = final ? 1500m : null;
         double margin = Math.Max(5, (double)(speed + weather.CurrentWindSpeed) / 3600 * 24 + 3);
         var waypoint = straightIn ? goal : AirspaceNavigator.NextWaypoint(position, goal, aircraft.Altitude,
-            aircraft.TargetAltitude, weather.ActiveZones, margin);
+            targetAltitude, weather.ActiveZones, margin);
         if (waypoint == null || waypoint != goal)
             Advisory(aircraft, airport, "deviate to remain clear of restricted airspace or weather", "Deviating to remain clear");
         else if (_lastAdvisory.TryGetValue(aircraft, out var last) && last.StartsWith("deviate", StringComparison.Ordinal))
@@ -312,41 +417,57 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
 
         double requestedHeading = waypoint.HasValue
             ? AirspaceNavigator.WindCorrectedHeading(position, waypoint.Value, speed, weather.CurrentWindSpeed, weather.CurrentWindDirection)
-            : aircraft.Heading;
+            : AirspaceNavigator.EscapeHeading(position, aircraft.Altitude, aircraft.Heading, weather.ActiveZones);
         if (aircraft.HasManualHeadingOverride && waypoint == goal) requestedHeading = aircraft.TargetHeading;
 
-        decimal? verticalRate = final ? 1500m : null;
-        if (verticalRate.HasValue)
-            nextAltitude = KinematicsCalculator.UpdateAltitude(aircraft.Altitude, aircraft.TargetAltitude, seconds, verticalRate.Value);
-        double? chosenHeading = ChooseSafeHeading(aircraft, position, requestedHeading, speed, nextAltitude, seconds);
-        decimal targetAltitude = aircraft.TargetAltitude;
-        if (!chosenHeading.HasValue && nextAltitude != aircraft.Altitude)
+        double? zoneHeading = ChooseSafeHeading(requestedHeading, targetAltitude);
+        if (!zoneHeading.HasValue && targetAltitude != aircraft.Altitude)
         {
-            chosenHeading = ChooseSafeHeading(aircraft, position, requestedHeading, speed, aircraft.Altitude, seconds);
-            if (chosenHeading.HasValue) aircraft.TargetAltitude = aircraft.Altitude;
+            targetAltitude = aircraft.Altitude;
+            zoneHeading = ChooseSafeHeading(requestedHeading, targetAltitude);
         }
-        if (!chosenHeading.HasValue) return;
-
-        double manualHeading = aircraft.TargetHeading;
-        aircraft.TargetHeading = chosenHeading.Value;
-        tracker.UpdateAircraftPosition(aircraft, weather, seconds, followDestination: false,
-            verticalRate: verticalRate);
-        if (aircraft.Operations.Phase != FlightPhase.Landed) aircraft.TargetAltitude = targetAltitude;
-        if (aircraft.HasManualHeadingOverride) aircraft.TargetHeading = manualHeading;
-    }
-
-    private double? ChooseSafeHeading(Aircraft aircraft, Vector2D position, double heading, decimal speed,
-        decimal nextAltitude, double seconds)
-    {
-        if (Clear(heading, nextAltitude)) return heading;
-        for (int offset = 15; offset <= 180; offset += 15)
+        if (!zoneHeading.HasValue)
         {
-            double right = KinematicsCalculator.NormalizeCompass(heading + offset);
-            if (Clear(right, nextAltitude)) return right;
-            double left = KinematicsCalculator.NormalizeCompass(heading - offset);
-            if (Clear(left, nextAltitude)) return left;
+            // A newly activated zone can leave the nose pointing into the obstacle.
+            // Finish turning before committing any more translation.
+            double escape = AirspaceNavigator.EscapeHeading(position, aircraft.Altitude, requestedHeading, weather.ActiveZones);
+            aircraft.Heading = KinematicsCalculator.UpdateHeading(aircraft.Heading, escape, seconds);
+            return;
         }
-        return null;
+
+        var maneuver = _trafficSeparation.Resolve(aircraft, position, zoneHeading.Value, targetAltitude,
+            speed, straightIn, verticalRate, Clear);
+        if (maneuver == null || maneuver.Value != (zoneHeading.Value, targetAltitude))
+        {
+            if (_avoidingTraffic.Add(aircraft))
+                Say(aircraft, airport, "traffic, maintain separation", "Maneuvering for traffic");
+        }
+        else
+            _avoidingTraffic.Remove(aircraft);
+        if (maneuver is not { } clearance)
+        {
+            aircraft.Heading = KinematicsCalculator.UpdateHeading(aircraft.Heading, aircraft.Heading + 90, seconds);
+            return;
+        }
+
+        double originalHeading = aircraft.TargetHeading;
+        decimal originalAltitude = aircraft.TargetAltitude;
+        aircraft.TargetHeading = clearance.Heading;
+        aircraft.TargetAltitude = clearance.Altitude;
+        tracker.UpdateAircraftPosition(aircraft, weather, seconds, followDestination: false, verticalRate: verticalRate);
+        aircraft.TargetAltitude = originalAltitude;
+        if (aircraft.HasManualHeadingOverride) aircraft.TargetHeading = originalHeading;
+
+        double? ChooseSafeHeading(double heading, decimal altitude)
+        {
+            if (Clear(heading, altitude)) return heading;
+            // Try both fully available turn directions before intermediate offsets.
+            double right = KinematicsCalculator.NormalizeCompass(aircraft.Heading + 90);
+            if (Clear(right, altitude)) return right;
+            double left = KinematicsCalculator.NormalizeCompass(aircraft.Heading - 90);
+            if (Clear(left, altitude)) return left;
+            return null;
+        }
 
         bool Clear(double course, decimal altitude)
         {
@@ -354,35 +475,63 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
             var (x, y) = KinematicsCalculator.CalculateNextPosition(position.X, position.Y, (double)speed,
                 actualHeading, (double)weather.CurrentWindSpeed, weather.CurrentWindDirection, seconds);
             return AirspaceNavigator.IsClear(position, new(Math.Round(x, 4), Math.Round(y, 4)), aircraft.Altitude,
-                altitude, weather.ActiveZones, allowExit: true);
+                AircraftTracker.NextAltitude(aircraft, altitude, seconds, verticalRate), weather.ActiveZones, allowExit: true);
         }
     }
 
-    private Runway? FindApproachRunway(Aircraft aircraft, Airport airport)
+    private readonly record struct Approach(Runway Runway, double EntryDistance, bool StraightIn);
+
+    private Approach? FindApproachRunway(Aircraft aircraft, Airport airport, Func<Runway, bool>? eligible = null)
     {
-        var threshold = At(airport);
         var position = AirspaceNavigator.Position(aircraft);
-        foreach (var candidate in AvailableRunways(airport, AirspaceNavigator.Bearing(position, threshold)))
+        foreach (var candidate in AvailableRunways(airport, AirspaceNavigator.Bearing(position, At(airport))))
         {
-            var candidateFix = AirspaceNavigator.Along(threshold, candidate.Angle + 180, FinalDistance);
-            var entry = AirspaceNavigator.Along(threshold, candidate.Angle + 180, ApproachEntryDistance);
-            if (!AirspaceNavigator.IsClear(candidateFix, threshold, InitialApproachAltitude, 0, weather.ActiveZones, 0.25)) continue;
-            if (!AirspaceNavigator.IsClear(entry, candidateFix, InitialApproachAltitude, InitialApproachAltitude, weather.ActiveZones, 2)) continue;
-            double distance = position.DistanceTo(entry) + ApproachEntryDistance - FinalDistance;
-            double descentTime = (double)Math.Max(0, Math.Abs(aircraft.Altitude - InitialApproachAltitude) - 150) / 25;
-            if (distance + 0.5 < descentTime * (double)TerminalSpeed(aircraft, final: true) / 3600) continue;
-            if (AirspaceNavigator.NextWaypoint(position, entry, aircraft.Altitude, InitialApproachAltitude, weather.ActiveZones, 5) != null)
-                return candidate;
+            if (eligible != null && !eligible(candidate)) continue;
+            var threshold = RunwayLayout.Center(airport, candidate);
+            var finalFix = AirspaceNavigator.Along(threshold, candidate.Angle + 180, FinalDistance);
+            if (!AirspaceNavigator.IsClear(finalFix, threshold, InitialApproachAltitude, 0, weather.ActiveZones, 0.25)) continue;
+
+            decimal approachSpeed = Math.Min(aircraft.GroundSpeed, TerminalSpeed(aircraft, final: false));
+            double slowdown = (double)(aircraft.GroundSpeed - approachSpeed);
+            double descent = DescentDistance(aircraft, approachSpeed) + slowdown * slowdown / 14400;
+            double inboundHeading = AirspaceNavigator.Bearing(position, finalFix);
+            double fixDistance = position.DistanceTo(finalFix);
+            bool straightIn = fixDistance >= descent &&
+                (fixDistance <= 0.3 || Math.Abs(KinematicsCalculator.NormalizeAngle(inboundHeading - candidate.Angle)) < 20) &&
+                Math.Abs(KinematicsCalculator.NormalizeAngle(aircraft.Heading - candidate.Angle)) < 45 &&
+                AirspaceNavigator.IsClear(position, finalFix, aircraft.Altitude, InitialApproachAltitude, weather.ActiveZones, 2);
+            if (straightIn) return new(candidate, ApproachEntryDistance, true);
+
+            double entryDistance = Math.Max(ApproachEntryDistance, FinalDistance + descent + 2);
+            var entry = AirspaceNavigator.Along(threshold, candidate.Angle + 180, entryDistance);
+            if (!AirspaceNavigator.IsClear(entry, finalFix, aircraft.Altitude, InitialApproachAltitude,
+                weather.ActiveZones, 2)) continue;
+            if (AirspaceNavigator.NextWaypoint(position, entry, aircraft.Altitude, InitialApproachAltitude,
+                weather.ActiveZones, 5) != null)
+                return new(candidate, entryDistance, false);
         }
         return null;
     }
 
-    private Vector2D[]? BuildHoldingPattern(Aircraft aircraft, Airport airport, Vector2D position, decimal altitude)
+    private bool ClearForDeparture(Runway runway, Airport airport, decimal speed)
+    {
+        var center = RunwayLayout.Center(airport, runway);
+        return AirspaceNavigator.IsClear(center, AirspaceNavigator.Along(center, runway.Angle, 3), 0,
+            (decimal)(3 * 3600 / Math.Max(60, (double)speed)) * DescentFeetPerSecond, weather.ActiveZones, 1);
+    }
+
+    private Vector2D[]? BuildHoldingPattern(Aircraft aircraft, Airport airport, Vector2D position, decimal altitude,
+        IReadOnlyList<Aircraft> traffic)
     {
         var threshold = At(airport);
         double bearing = AirspaceNavigator.Bearing(threshold, position);
         double outsideAirspace = RestrictedExtent(threshold, Math.Max(aircraft.Altitude, altitude)) + 20;
-        foreach (double radius in new[] { 18, 25, 35, 50, Math.Max(55, outsideAirspace) })
+        var nearbyPatterns = traffic.Where(other => other != aircraft && other.Operations.Phase == FlightPhase.Holding &&
+            Math.Abs(other.Operations.HoldingAltitude - altitude) < CollisionDetector.VerticalSeparationMinFt)
+            .Select(other => other.Operations.HoldingPattern).OfType<Vector2D[]>().Where(pattern => pattern.Length > 0)
+            .Select(Bounds).ToArray();
+        foreach (double radius in new[] { 18, 25, 35, 50, Math.Max(65, outsideAirspace),
+            Math.Max(85, outsideAirspace + 20), Math.Max(105, outsideAirspace + 40) })
         {
             for (int turn = 0; turn < 12; turn++)
             {
@@ -394,6 +543,10 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
                 Vector2D outboundEnd = AirspaceNavigator.Along(turnOut, outbound, 6);
                 Vector2D inboundStart = AirspaceNavigator.Along(fix, outbound, 6);
                 Vector2D[] legs = [fix, turnOut, outboundEnd, inboundStart];
+                var (left, top, right, bottom) = Bounds(legs);
+                const double margin = CollisionDetector.HorizontalSeparationMinNm + 1;
+                if (nearbyPatterns.Any(other => left - margin < other.Right && right + margin > other.Left &&
+                    top - margin < other.Bottom && bottom + margin > other.Top)) continue;
                 if (IsHoldingPatternClear(legs, altitude) &&
                     AirspaceNavigator.NextWaypoint(position, fix, aircraft.Altitude, altitude, weather.ActiveZones, 5) != null)
                     return legs;
@@ -401,6 +554,10 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
         }
         return null;
     }
+
+    private static (double Left, double Top, double Right, double Bottom) Bounds(Vector2D[] pattern) =>
+        (pattern.Min(point => point.X), pattern.Min(point => point.Y),
+            pattern.Max(point => point.X), pattern.Max(point => point.Y));
 
     private bool IsHoldingPatternClear(Vector2D[] legs, decimal altitude)
     {
@@ -410,12 +567,29 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
         return true;
     }
 
-    private static bool RunwayBusy(Airport airport, IReadOnlyList<Aircraft> traffic, DateTime time, Aircraft except) =>
-        traffic.Any(other => !ReferenceEquals(other, except) &&
-            (other.DepartureAirportIcao == airport.IcaoCode && other.Operations.Phase == FlightPhase.Departing ||
-             other.ArrivalAirportIcao == airport.IcaoCode && other.Operations.Phase is FlightPhase.Approach or FlightPhase.Final or FlightPhase.MissedApproach ||
-             other.Operations.RunwayClearAt > time && (other.Operations.Phase == FlightPhase.Landed
-                 ? other.ArrivalAirportIcao == airport.IcaoCode : other.DepartureAirportIcao == airport.IcaoCode)));
+    private static bool RunwayBusy(Airport airport, Runway candidate, IReadOnlyList<Aircraft> traffic, DateTime time, Aircraft except, bool arriving = false)
+    {
+        foreach (var other in traffic)
+        {
+            if (other == except) continue;
+            var ops = other.Operations;
+            bool inbound = ops.Phase is FlightPhase.Approach or FlightPhase.Final or FlightPhase.MissedApproach or FlightPhase.Landed;
+            if ((inbound ? other.ArrivalAirportIcao : other.DepartureAirportIcao) != airport.IcaoCode) continue;
+            bool onApproach = ops.Phase is FlightPhase.Approach or FlightPhase.Final or FlightPhase.MissedApproach;
+            if (!onApproach && ops.Phase != FlightPhase.Departing && !(ops.RunwayClearAt > time)) continue;
+            var occupied = airport.Runways.Find(runway => runway.Designator == ops.RunwayDesignator);
+            // The simulated parallels do not provide lateral separation on simultaneous finals.
+            if (occupied == null || RunwayLayout.SharesProtection(candidate, occupied) || (arriving && onApproach) ||
+                (ops.Phase == FlightPhase.Departing && other.PlannedDepartureSpeed.HasValue))
+                return true;
+        }
+        return false;
+    }
+
+    private static Vector2D AssignedRunwayCenter(Airport airport, FlightOperationsState ops) =>
+        airport.Runways.Find(runway => runway.Designator == ops.RunwayDesignator) is { } runway
+            ? RunwayLayout.Center(airport, runway)
+            : At(airport);
 
     private static bool CanVector(Aircraft aircraft) => aircraft.IsAirborne &&
         aircraft.Operations.Phase is FlightPhase.EnRoute or FlightPhase.ArrivalQueue or FlightPhase.Holding;
@@ -428,12 +602,9 @@ internal sealed class AirportTrafficControl(RadioDispatcherService radio, Weathe
 
     private static int WakeSeconds(Aircraft aircraft) => aircraft.Model is { Category: "HEAVY" } or { IconType: "IL76" } ? 120 : 60;
 
-    private double ArrivalDistance(Aircraft aircraft, Vector2D threshold)
-    {
-        double descentDistance = (double)Math.Max(0, aircraft.Altitude - InitialApproachAltitude) / 25
-            * (double)TerminalSpeed(aircraft, final: true) / 3600;
-        return Math.Max(Math.Max(32, descentDistance + 16), RestrictedExtent(threshold, aircraft.Altitude) + 25);
-    }
+    private double DescentDistance(Aircraft aircraft, decimal speed) =>
+        (double)(Math.Abs(aircraft.Altitude - InitialApproachAltitude) / DescentFeetPerSecond)
+        * (double)(speed + weather.CurrentWindSpeed) / 3600;
 
     private double RestrictedExtent(Vector2D threshold, decimal altitude)
     {

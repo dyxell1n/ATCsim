@@ -16,30 +16,45 @@ public class CollisionDetector
 
     public event Action<CollisionAlert>? SeparationAlertTriggered;
 
-    public bool CanDepart(Aircraft aircraft, IReadOnlyList<Aircraft> traffic) =>
-        !traffic.Any(other => other != aircraft && other.IsAirborne && IsLossOfSeparation(aircraft, other, out _, out _));
+    public bool CanDepart(Aircraft aircraft, IReadOnlyList<Aircraft> traffic, Vector2D? runwayStart = null)
+    {
+        var start = runwayStart ?? AirspaceNavigator.Position(aircraft);
+        return !traffic.Any(other => other != aircraft && other.IsAirborne &&
+            Math.Abs(aircraft.Altitude - other.Altitude) < VerticalSeparationMinFt &&
+            start.DistanceTo(AirspaceNavigator.Position(other)) < HorizontalSeparationMinNm);
+    }
 
     public List<CollisionAlert> CheckSeparation(IReadOnlyList<Aircraft> aircraftList)
     {
-        var alerts = new List<CollisionAlert>();
+        var sorted = aircraftList.Select((aircraft, index) => (aircraft, index))
+            .Where(entry => entry.aircraft.IsAirborne)
+            .OrderBy(entry => entry.aircraft.CoordX).ToArray();
+        var pairs = new List<(int First, int Second, CollisionAlert Alert)>?[sorted.Length];
 
-        for (int i = 0; i < aircraftList.Count; i++)
+        void Scan(int i)
         {
-            var a1 = aircraftList[i];
-            if (!a1.IsAirborne) continue;
-
-            for (int j = i + 1; j < aircraftList.Count; j++)
+            var (left, leftIndex) = sorted[i];
+            for (int j = i + 1; j < sorted.Length; j++)
             {
-                var a2 = aircraftList[j];
-                if (a2.IsAirborne && IsLossOfSeparation(a1, a2, out double hDist, out decimal vDist))
-                {
-                    var alert = new CollisionAlert(a1, a2, Math.Round(hDist, 2), vDist);
-                    alerts.Add(alert);
-                    SeparationAlertTriggered?.Invoke(alert);
-                }
+                var (right, rightIndex) = sorted[j];
+                if ((double)right.CoordX - (double)left.CoordX >= HorizontalSeparationMinNm) break;
+                if (!IsLossOfSeparation(left, right, out double distance, out decimal vertical)) continue;
+                int first = Math.Min(leftIndex, rightIndex);
+                int second = Math.Max(leftIndex, rightIndex);
+                (pairs[i] ??= []).Add((first, second,
+                    new(aircraftList[first], aircraftList[second], Math.Round(distance, 2), vertical)));
             }
         }
 
+        if (sorted.Length >= 256)
+            Parallel.For(0, sorted.Length, Scan);
+        else
+            for (int i = 0; i < sorted.Length; i++) Scan(i);
+
+        // Preserve input pair order and deliver events on the simulation thread.
+        var alerts = pairs.Where(row => row != null).SelectMany(row => row!)
+            .OrderBy(pair => pair.First).ThenBy(pair => pair.Second).Select(pair => pair.Alert).ToList();
+        foreach (var alert in alerts) SeparationAlertTriggered?.Invoke(alert);
         return alerts;
     }
 

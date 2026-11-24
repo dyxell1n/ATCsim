@@ -151,6 +151,7 @@ public static class DatabaseInitializer
         EnsureColumn(connection, "saved_aircraft", "operations_json", "TEXT");
         EnsureColumn(connection, "sim_session", "terrain_version", "INTEGER NOT NULL DEFAULT 1");
         EnsureColumn(connection, "sim_session", "zones_json", "TEXT");
+        EnsureColumn(connection, "sim_session", "airports_json", "TEXT");
         SeedInitialData(connection);
     }
 

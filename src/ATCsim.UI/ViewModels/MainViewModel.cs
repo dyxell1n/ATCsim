@@ -7,7 +7,7 @@ using ATCsim.Data.Repositories;
 
 namespace ATCsim.UI.ViewModels;
 
-public class MainViewModel : ViewModelBase
+public partial class MainViewModel : ViewModelBase
 {
     private readonly SimulationEngine _engine;
     private readonly RepositoryManager _repoManager;
@@ -15,14 +15,10 @@ public class MainViewModel : ViewModelBase
     private int _terrainVersion = WorldSector.CurrentTerrainVersion;
 
     private string _seedInput = "84920417";
-    private string _systemStatusText = "ONLINE (60 FPS)";
-    private string _airspaceText = "UKRAINE FIR";
-    private string _activeTargetsText = "4 AIRBORNE";
+    private string _activeTargetsText = "0 AIRBORNE";
     private string _simTimeText = "12:44:15 UTC";
     private string _windText = "310° @ 14 KTS";
     private string _speedLabel = "1x";
-    private string _databaseStatusText = "DB: ONLINE (SQLite • 9 Tables)";
-    private bool _isRunning;
 
     // Flight route banner properties
     private string _depIcao = "UKLL";
@@ -36,7 +32,6 @@ public class MainViewModel : ViewModelBase
     private string _flightStatusBadge = "ON TIME (+0m)";
     private string _flightEta = "ETA 13:20 UTC (38m remaining)";
     private string _flightRoute = "UKLL ➔ TMR ➔ SLV ➔ KVR ➔ UKBB";
-    private double _flightProgressPercent = 55.0;
     private string _flightDistanceFlown = "260 km flown (55%)";
     private string _flightDistanceRemaining = "210 km remaining | Total: 470 km";
 
@@ -47,6 +42,7 @@ public class MainViewModel : ViewModelBase
     public FlightInspectorVM Inspector { get; }
     public LogsViewModel Logs { get; }
     public bool HasSelectedTrack => Radar.SelectedTrack != null;
+    public bool IsMriyaSelected => Radar.SelectedTrack?.IsMriya == true;
     public System.Windows.Media.Geometry FlightIconGeometry =>
         Radar.SelectedTrack?.IconGeometry ?? Resources.AviationIcons.ForAircraft(null);
 
@@ -54,18 +50,6 @@ public class MainViewModel : ViewModelBase
     {
         get => _seedInput;
         set => SetProperty(ref _seedInput, value);
-    }
-
-    public string SystemStatusText
-    {
-        get => _systemStatusText;
-        set => SetProperty(ref _systemStatusText, value);
-    }
-
-    public string AirspaceText
-    {
-        get => _airspaceText;
-        set => SetProperty(ref _airspaceText, value);
     }
 
     public string ActiveTargetsText
@@ -89,19 +73,7 @@ public class MainViewModel : ViewModelBase
     public string SpeedLabel
     {
         get => _speedLabel;
-        set => SetProperty(ref _speedLabel, value);
-    }
-
-    public string DatabaseStatusText
-    {
-        get => _databaseStatusText;
-        set => SetProperty(ref _databaseStatusText, value);
-    }
-
-    public bool IsRunning
-    {
-        get => _isRunning;
-        set => SetProperty(ref _isRunning, value);
+        private set => SetProperty(ref _speedLabel, value);
     }
 
     public string DepIcao
@@ -170,20 +142,6 @@ public class MainViewModel : ViewModelBase
         set => SetProperty(ref _flightRoute, value);
     }
 
-    public double FlightProgressPercent
-    {
-        get => _flightProgressPercent;
-        set
-        {
-            if (SetProperty(ref _flightProgressPercent, value))
-            {
-                double val = Math.Clamp(value, 1.0, 99.0);
-                FlownGridLength = new GridLength(val, GridUnitType.Star);
-                RemainingGridLength = new GridLength(100.0 - val, GridUnitType.Star);
-            }
-        }
-    }
-
     public GridLength FlownGridLength
     {
         get => _flownGridLength;
@@ -230,20 +188,21 @@ public class MainViewModel : ViewModelBase
         _repoManager = repoManager;
         _worldGenerator = worldGenerator;
 
-        Radar = new RadarViewModel(_engine);
+        Radar = new RadarViewModel();
         Logs = new LogsViewModel();
         Inspector = new FlightInspectorVM(_engine);
 
-        Radar.TrackSelected += aircraft =>
+        Radar.TrackSelected += aircraft => _engine.ReadState(() =>
         {
             Inspector.SetSelectedAircraft(aircraft);
             OnPropertyChanged(nameof(HasSelectedTrack));
+            OnPropertyChanged(nameof(IsMriyaSelected));
             if (aircraft != null)
             {
                 Inspector.ActiveTab = "AIRCRAFT";
                 UpdateFlightRouteBanner(aircraft);
             }
-        };
+        });
 
         Radar.AirportSelected += airport =>
         {
@@ -267,7 +226,6 @@ public class MainViewModel : ViewModelBase
         RunCommand = new RelayCommand(() =>
         {
             _engine.Start();
-            IsRunning = true;
             _repoManager.Logs.AddSimLog(new SimLog
             {
                 WorldSeed = _engine.CurrentSeed,
@@ -275,13 +233,11 @@ public class MainViewModel : ViewModelBase
                 Details = "Simulation loop started by operator.",
                 SimTime = _engine.SimTime
             });
-            UpdateDatabaseStats();
         });
 
         PauseCommand = new RelayCommand(() =>
         {
             _engine.Pause();
-            IsRunning = false;
             _repoManager.Logs.AddSimLog(new SimLog
             {
                 WorldSeed = _engine.CurrentSeed,
@@ -289,21 +245,16 @@ public class MainViewModel : ViewModelBase
                 Details = "Simulation loop paused by operator.",
                 SimTime = _engine.SimTime
             });
-            UpdateDatabaseStats();
         });
 
-        ToggleSpeedCommand = new RelayCommand(() =>
+        ToggleSpeedCommand = new RelayCommand(() => SetPlaybackSpeed(_engine.TimeScale switch
         {
-            double next = _engine.TimeScale switch
-            {
-                1.0 => 2.0,
-                2.0 => 4.0,
-                4.0 => 8.0,
-                _ => 1.0
-            };
-            _engine.SetTimeScale(next);
-            SpeedLabel = $"{(int)next}x";
-        });
+            < 2 => 2,
+            < 4 => 4,
+            < 8 => 8,
+            < SimulationEngine.MaxTimeScale => SimulationEngine.MaxTimeScale,
+            _ => 1
+        }));
 
         GenerateWorldCommand = new RelayCommand(GenerateFromSeed);
         RandomSeedCommand = new RelayCommand(() =>
@@ -321,38 +272,23 @@ public class MainViewModel : ViewModelBase
 
         // Wire simulation engine events
         _engine.StateUpdated += OnSimulationStateUpdated;
-        _engine.ConflictDetected += alert =>
+        _engine.ConflictDetected += alert => _pendingAlerts.Enqueue(new SimLog
         {
-            _ = Application.Current?.Dispatcher.InvokeAsync(() =>
-            {
-                Radar.MarkConflict(alert.Aircraft1.Callsign, alert.Aircraft2.Callsign);
-                Logs.AddLog(
-                    "• LOSS OF SEPARATION",
-                    "SAFETY ALERT",
-                    $"TRAFFIC ALERT: {alert.Aircraft1.Callsign} and {alert.Aircraft2.Callsign} separation {alert.HorizontalDistanceNm} NM / {alert.VerticalDistanceFt} ft!",
-                    isAlert: true);
-
-                _repoManager.Logs.AddSimLog(new SimLog
-                {
-                    WorldSeed = _engine.CurrentSeed,
-                    EventType = "COLLISION_WARNING",
-                    AircraftId = alert.Aircraft1.Id,
-                    Details = $"Separation conflict with {alert.Aircraft2.Callsign} (H: {alert.HorizontalDistanceNm} NM, V: {alert.VerticalDistanceFt} ft)",
-                    SimTime = _engine.SimTime
-                });
-                UpdateDatabaseStats();
-            });
-        };
-
+            WorldSeed = _engine.CurrentSeed,
+            SimTime = _engine.SimTime,
+            EventType = "COLLISION_WARNING",
+            AircraftId = alert.Aircraft1.Id,
+            Details = $"{alert.Aircraft1.Callsign} and {alert.Aircraft2.Callsign}: {alert.HorizontalDistanceNm} NM / {alert.VerticalDistanceFt} ft."
+        });
         _engine.Radio.MessageLogged += log =>
         {
-            _ = Application.Current?.Dispatcher.InvokeAsync(() =>
-            {
-                Logs.AddLog(log);
-                if (log.AirportId > 0 && log.SenderType is "ATC" or "AIRCRAFT")
-                    _repoManager.Logs.AddCommunicationLog(log);
-            });
+            _pendingRadio.Enqueue(log);
+            OnSimulationStateUpdated();
         };
+        ImportSaveCommand = new RelayCommand(() => TransferFile(import: true, preset: false));
+        ExportSaveCommand = new RelayCommand(() => TransferFile(import: false, preset: false));
+        ImportPresetCommand = new RelayCommand(() => TransferFile(import: true, preset: true));
+        ExportPresetCommand = new RelayCommand(() => TransferFile(import: false, preset: true));
 
         // Initialize sector baseline from database or world generator
         LoadInitialBaseline();
@@ -368,14 +304,16 @@ public class MainViewModel : ViewModelBase
         if (dlg.ShowDialog() == true && dlg.CreatedAircraft != null)
         {
             var plane = dlg.CreatedAircraft;
-            plane.Id = _engine.ActiveAircraft.Select(aircraft => aircraft.Id).DefaultIfEmpty().Max() + 1;
-            _repoManager.SyncSectorToDatabase(new WorldSector { Seed = _engine.CurrentSeed, Aircraft = [plane] });
+            if (_engine.ActiveAircraft.Any(a => string.Equals(a.Callsign, plane.Callsign, StringComparison.OrdinalIgnoreCase)))
+            {
+                MessageBox.Show("An aircraft with this callsign is already on the radar.");
+                return;
+            }
+            _repoManager.ImportSector(new WorldSector { Seed = _engine.CurrentSeed, Aircraft = [plane] });
             _engine.AddAircraft(plane);
 
             var trackVm = new AircraftTrackViewModel(plane);
             Radar.Tracks.Add(trackVm);
-
-            UpdateDatabaseStats();
         }
     }
 
@@ -394,7 +332,6 @@ public class MainViewModel : ViewModelBase
             _engine.AddWeatherZone(newZone);
             Radar.WeatherZones.Add(new WeatherZoneViewModel(newZone));
             Logs.AddLog("• METEO", "RADAR CENTER", $"New weather restriction {newZone.Name} ({newZone.ZoneType}) activated.", isRadio: false);
-            UpdateDatabaseStats();
         }
     }
 
@@ -408,14 +345,15 @@ public class MainViewModel : ViewModelBase
         if (dlg.ShowDialog() == true && dlg.CreatedAirport != null)
         {
             var apt = dlg.CreatedAirport;
-            apt.Id = _engine.Airports.Count + 1;
-            if (apt.Runways.Count > 0) apt.Runways[0].AirportId = apt.Id;
-
+            if (_engine.Airports.Any(a => string.Equals(a.IcaoCode, apt.IcaoCode, StringComparison.OrdinalIgnoreCase)))
+            {
+                MessageBox.Show("An airport with this ICAO code is already on the map.");
+                return;
+            }
+            _repoManager.ImportSector(new WorldSector { Airports = [apt] });
             _engine.AddAirport(apt);
-            _repoManager.Airports.AddAirport(apt);
             Radar.RefreshAirportsList(_engine.Airports);
             Inspector.LoadAirports(_engine.Airports);
-            UpdateDatabaseStats();
         }
     }
 
@@ -434,17 +372,17 @@ public class MainViewModel : ViewModelBase
 
         if (dlg.ShowDialog() == true)
         {
-            _engine.UpdateAirport(targetApt);
-            _repoManager.Airports.UpdateAirport(targetApt);
+            _repoManager.Airports.UpdateAirport(dlg.EditedAirport);
+            _engine.UpdateAirport(dlg.EditedAirport);
             Radar.RefreshAirportsList(_engine.Airports);
             Inspector.LoadAirports(_engine.Airports);
-            UpdateDatabaseStats();
         }
     }
 
     private void ExecuteExitAndSave()
     {
         _engine.Pause();
+        FlushLogs();
         _repoManager.SaveSessionProgress(
             _engine.CurrentSeed,
             _engine.SimTime,
@@ -493,7 +431,6 @@ public class MainViewModel : ViewModelBase
         double remDist = Math.Sqrt(Math.Pow(ac.DestinationX - (double)ac.CoordX, 2) + Math.Pow(ac.DestinationY - (double)ac.CoordY, 2));
 
         double pct = Math.Clamp((flownDist / totalDist) * 100.0, 0.0, 100.0);
-        FlightProgressPercent = pct;
         FlownGridLength = new GridLength(pct, GridUnitType.Star);
         RemainingGridLength = new GridLength(100.0 - pct, GridUnitType.Star);
 
@@ -504,35 +441,37 @@ public class MainViewModel : ViewModelBase
         FlightDistanceRemaining = $"{remKm} km remaining | Total: {totalKm} km";
     }
 
+    private void SetPlaybackSpeed(double scale)
+    {
+        _engine.SetTimeScale(scale);
+        SpeedLabel = $"{_engine.TimeScale:0.##}x";
+    }
+
     private void LoadInitialBaseline()
     {
-        if (_repoManager.HasSavedSession())
+        var saved = _repoManager.LoadSavedSession();
+        if (saved.HasValue)
         {
-            var saved = _repoManager.LoadSavedSession();
-            if (saved.HasValue && saved.Value.Aircraft.Count > 0)
+            var (seed, simTime, timeScale, aircraftList, terrainVersion, weatherZones, savedAirports) = saved.Value;
+            SeedInput = seed.ToString();
+            _terrainVersion = terrainVersion;
+            var airports = savedAirports ?? _repoManager.Airports.GetAll();
+
+            var savedSector = _worldGenerator.GenerateSector(seed);
+            if (_terrainVersion == WorldSector.LegacyTerrainVersion)
             {
-                var (seed, simTime, timeScale, aircraftList, terrainVersion, weatherZones) = saved.Value;
-                SeedInput = seed.ToString();
-                _terrainVersion = terrainVersion;
-                var airports = _repoManager.Airports.GetAll();
-
-                var savedSector = _worldGenerator.GenerateSector(seed);
-                if (_terrainVersion == WorldSector.LegacyTerrainVersion)
-                {
-                    _worldGenerator.RestoreLegacyTerrain(savedSector);
-                }
-                savedSector.Aircraft = aircraftList;
-                if (airports.Count > 0) savedSector.Airports = airports;
-                if (weatherZones != null) savedSector.WeatherZones = weatherZones;
-
-                _engine.LoadSector(savedSector, simTime);
-                _engine.SetTimeScale(timeScale);
-                RefreshRadarSector(savedSector);
-
-                Logs.AddLog("• RESTORE", "STORAGE ENGINE", $"Попередню збережену сесію (Seed: {seed}) завантажено з бази даних SQLite.", isRadio: false);
-                UpdateDatabaseStats();
-                return;
+                _worldGenerator.RestoreLegacyTerrain(savedSector);
             }
+            savedSector.Aircraft = aircraftList;
+            if (savedAirports != null || airports.Count > 0) savedSector.Airports = airports;
+            if (weatherZones != null) savedSector.WeatherZones = weatherZones;
+
+            _engine.LoadSector(savedSector, simTime);
+            SetPlaybackSpeed(timeScale);
+            RefreshRadarSector(savedSector);
+
+            Logs.AddLog("• RESTORE", "STORAGE ENGINE", $"Попередню збережену сесію (Seed: {seed}) завантажено з бази даних SQLite.", isRadio: false);
+            return;
         }
 
         long defaultSeed = 84920417;
@@ -540,12 +479,9 @@ public class MainViewModel : ViewModelBase
 
         // Generate baseline sector
         var sector = _worldGenerator.GenerateSector(defaultSeed);
+        _repoManager.ImportSector(sector);
         _engine.LoadSector(sector);
         RefreshRadarSector(sector);
-
-        // Sync complete sector directly into SQLite database
-        _repoManager.SyncSectorToDatabase(sector);
-        UpdateDatabaseStats();
 
         // Load historical communication logs from SQLite
         var dbLogs = _repoManager.Logs.GetCommunicationLogs(10);
@@ -564,27 +500,17 @@ public class MainViewModel : ViewModelBase
             return;
         }
         _engine.Pause();
-        IsRunning = false;
 
         var sector = _worldGenerator.GenerateSector(seed);
+        _repoManager.ImportSector(sector);
         _engine.LoadSector(sector);
         _terrainVersion = WorldSector.CurrentTerrainVersion;
         RefreshRadarSector(sector);
-
-        // Sync freshly generated sector to SQLite
-        _repoManager.SyncSectorToDatabase(sector);
-        UpdateDatabaseStats();
 
         _repoManager.SaveSessionProgress(seed, _engine.SimTime, _engine.TimeScale,
             sector.Airports, sector.Aircraft, sector.WeatherZones, _terrainVersion);
 
         Logs.AddLog("• WORLD GEN", "SEED ENGINE", $"Procedural sector generated with seed {seed}. Saved to SQLite.", isRadio: false);
-    }
-
-    private void UpdateDatabaseStats()
-    {
-        int count = _repoManager.GetTotalRecordsCount();
-        DatabaseStatusText = $"DB: ONLINE (SQLite • 9 Tables • {count} Records)";
     }
 
     private void RefreshRadarSector(WorldSector sector)
@@ -597,24 +523,49 @@ public class MainViewModel : ViewModelBase
     private void UpdateAirborneCount() =>
         ActiveTargetsText = $"{_engine.ActiveAircraft.Count(a => a.IsAirborne)} AIRBORNE";
 
+    private readonly System.Collections.Concurrent.ConcurrentQueue<CommunicationLog> _pendingRadio = new();
+    private readonly System.Collections.Concurrent.ConcurrentQueue<SimLog> _pendingAlerts = new();
+    private int _refreshQueued;
+
     private void OnSimulationStateUpdated()
     {
-        Application.Current?.Dispatcher?.Invoke(() =>
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null || dispatcher.HasShutdownStarted || Interlocked.Exchange(ref _refreshQueued, 1) != 0) return;
+        dispatcher.InvokeAsync(() =>
         {
-            SimTimeText = _engine.SimTime.ToString("HH:mm:ss") + " UTC";
-            UpdateAirborneCount();
-            WindText = $"{_engine.Weather.CurrentWindDirection:D3}° @ {(int)_engine.Weather.CurrentWindSpeed} KTS";
-
-            Radar.SyncPositions();
-
-            if (Radar.SelectedTrack is { Aircraft: var aircraft })
+            Interlocked.Exchange(ref _refreshQueued, 0);
+            _engine.ReadState(() =>
             {
-                UpdateFlightRouteBanner(aircraft);
-                Inspector.UpdateTelemetryDisplay(aircraft);
-            }
-        });
+                SimTimeText = _engine.SimTime.ToString("HH:mm:ss") + " UTC";
+                UpdateAirborneCount();
+                WindText = $"{_engine.Weather.CurrentWindDirection:D3}° @ {(int)_engine.Weather.CurrentWindSpeed} KTS";
+                Radar.SyncPositions(_engine.ConflictingAircraft);
+                Inspector.RefreshAirportTraffic();
+                if (Radar.SelectedTrack is { Aircraft: var aircraft })
+                {
+                    UpdateFlightRouteBanner(aircraft);
+                    Inspector.UpdateTelemetryDisplay(aircraft);
+                }
+            });
+            FlushLogs();
+        }, System.Windows.Threading.DispatcherPriority.Background);
+    }
+
+    private void FlushLogs()
+    {
+        var radio = new List<CommunicationLog>();
+        var alerts = new List<SimLog>();
+        while (_pendingRadio.TryDequeue(out var log))
+        {
+            Logs.AddLog(log);
+            if (log.AirportId > 0 && log.SenderType is "ATC" or "AIRCRAFT") radio.Add(log);
+        }
+        while (_pendingAlerts.TryDequeue(out var alert))
+        {
+            Logs.AddLog("• LOSS OF SEPARATION", "SAFETY ALERT", alert.Details, isAlert: true, time: alert.SimTime);
+            alerts.Add(alert);
+        }
+        if (radio.Count + alerts.Count == 0) return;
+        _repoManager.Logs.AddBatch(radio, alerts);
     }
 }
-
-
-

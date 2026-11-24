@@ -125,7 +125,7 @@ public partial class WorldGenerator : IWorldGenerator
                     (double)airport.CoordY) > (double)zone.Radius + 20);
         }
 
-        var models = AircraftModelCatalog.All;
+        var models = AircraftModelCatalog.All.Where(model => model.IconType != "A225").ToArray();
 
         string[] callsigns =
         [
@@ -154,7 +154,7 @@ public partial class WorldGenerator : IWorldGenerator
                 + i * 2000
                 + random.Next(0, 2) * 1000;
 
-            var definition = models[i % models.Count];
+            var definition = models[i % models.Length];
             var model = definition.CreateModel();
 
             // Keep exactly the same random draws, preserving map geometry and routes.

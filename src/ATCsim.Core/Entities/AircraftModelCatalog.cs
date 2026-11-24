@@ -15,7 +15,8 @@ public static class AircraftModelCatalog
             new(4, "Airbus A321", "PASSENGER", 460, 39800, 23700, "A321", 30000),
             new(5, "Ilyushin Il-76TD", "CARGO", 405, 40000, 88000, "IL76", 26000),
             new(6, "Bombardier Global Express", "BUSINESS", 460, 51000, 20298, "GLEX", 34000),
-            new(7, "Cirrus SR22", "LIGHT", 175, 17500, 246, "SR22", 6000)
+            new(7, "Cirrus SR22", "LIGHT", 175, 17500, 246, "SR22", 6000),
+            new(8, "Antonov An-225 Мрія", "HEAVY", 432, 29500, 300000, "A225", 28000)
         ]);
 
     public static AircraftModelDefinition? FindByIconType(string? iconType) =>

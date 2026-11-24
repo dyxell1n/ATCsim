@@ -136,17 +136,30 @@ public class AirportRepository(DatabaseContext context)
             using var rcmd = conn.CreateCommand();
             rcmd.Transaction = trans;
             rcmd.CommandText = @"
-                UPDATE runways
-                SET designator = @des, angle = @ang, length = @len, is_available = @avail
-                WHERE id = @id;
+                INSERT INTO runways (id, airport_id, designator, angle, length, is_available)
+                VALUES (NULLIF(@id, 0), @aid, @des, @ang, @len, @avail)
+                ON CONFLICT(id) DO UPDATE SET
+                    designator = excluded.designator, angle = excluded.angle,
+                    length = excluded.length, is_available = excluded.is_available
+                RETURNING id;
             ";
             rcmd.Parameters.AddWithValue("@des", rwy.Designator);
             rcmd.Parameters.AddWithValue("@ang", rwy.Angle);
             rcmd.Parameters.AddWithValue("@len", (double)rwy.Length);
             rcmd.Parameters.AddWithValue("@avail", rwy.IsAvailable ? 1 : 0);
             rcmd.Parameters.AddWithValue("@id", rwy.Id);
-            rcmd.ExecuteNonQuery();
+            rcmd.Parameters.AddWithValue("@aid", airport.Id);
+            rwy.Id = Convert.ToInt32(rcmd.ExecuteScalar());
         }
+
+        using var remove = conn.CreateCommand();
+        remove.Transaction = trans;
+        remove.CommandText = """
+            DELETE FROM runways WHERE airport_id = @airport AND id NOT IN (SELECT value FROM json_each(@retained));
+            """;
+        remove.Parameters.AddWithValue("@airport", airport.Id);
+        remove.Parameters.AddWithValue("@retained", System.Text.Json.JsonSerializer.Serialize(airport.Runways.Select(r => r.Id)));
+        remove.ExecuteNonQuery();
 
         trans.Commit();
     }

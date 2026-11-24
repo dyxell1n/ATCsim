@@ -14,7 +14,7 @@ public class AirportTrafficControlTests
         var destination = AirportAt(2, "UKBB", 990);
         Aircraft[] aircraft = Enumerable.Range(1, 10).Select(id =>
         {
-            var flight = new Aircraft { Id = id, Callsign = $"TST{id}", FuelRemaining = 10000 };
+            var flight = new Aircraft { Id = id, Callsign = $"TST{id}", FuelRemaining = 20000 };
             AircraftTracker.ScheduleDeparture(flight, origin, destination, 12000, 360);
             return flight;
         }).ToArray();
@@ -124,6 +124,163 @@ public class AirportTrafficControlTests
         zone.IsActive = false;
         engine.Advance(3600);
         Assert.Equal(FlightPhase.Landed, flight.Operations.Phase);
+    }
+
+    [Fact]
+    public void OppositeCoursesMaintainSeparationWithControllerHeadings()
+    {
+        var airport = AirportAt(1, "UKBB", 800);
+        var first = Inbound(1, airport, 40, altitude: 24000);
+        var second = Inbound(2, airport, 63, altitude: 24000);
+        first.GroundSpeed = second.GroundSpeed = 440;
+        second.Heading = second.TargetHeading = 270;
+        using var engine = StartSector([airport], [first, second]);
+        engine.VectorAircraft(first, 90);
+        engine.VectorAircraft(second, 270);
+        int losses = 0;
+        engine.ConflictDetected += _ => losses++;
+
+        engine.Advance(220);
+
+        Assert.True(first.CoordX > second.CoordX);
+        Assert.Equal(0, losses);
+        Assert.Equal(90, first.TargetHeading);
+        Assert.Equal(270, second.TargetHeading);
+        Assert.Contains(engine.Radio.Logs, log => log.Message.Contains("maintain separation"));
+    }
+
+    [Fact]
+    public void NewlyActivatedZoneAllowsOutboundRecovery()
+    {
+        var airport = AirportAt(1, "UKBB", 220);
+        var plane = Inbound(1, airport, 70, altitude: 10000);
+        var zone = new WeatherZone { CenterX = 75, CenterY = 100, Radius = 15, ZoneType = "TURBULENCE", MaxAltitude = 20000 };
+        using var engine = StartSector([airport], [plane], [zone]);
+
+        engine.Advance(450);
+
+        var dx = plane.CoordX - zone.CenterX;
+        var dy = plane.CoordY - zone.CenterY;
+        Assert.True(dx * dx + dy * dy > zone.Radius * zone.Radius);
+    }
+
+    [Fact]
+    public void HoldingAtTheSameCeilingUsesDifferentCircuits()
+    {
+        var airport = AirportAt(1, "UKBB", 100);
+        var first = Inbound(1, airport, 80, altitude: 5000);
+        var second = Inbound(2, airport, 71, altitude: 5000);
+        first.Model = second.Model = new AircraftModel { MaxAltitude = 5000 };
+        var runwayOccupant = new Aircraft
+        {
+            Id = 3, IsActive = false, ArrivalAirportIcao = airport.IcaoCode,
+            Operations = new() { Phase = FlightPhase.Landed, RunwayClearAt = DateTime.UnixEpoch.AddMinutes(3) }
+        };
+        using var engine = StartSector([airport], [first, second, runwayOccupant]);
+
+        engine.Advance(1);
+
+        Assert.Equal(5000, first.Operations.HoldingAltitude);
+        Assert.Equal(5000, second.Operations.HoldingAltitude);
+        var firstPattern = Assert.IsType<Vector2D[]>(first.Operations.HoldingPattern);
+        var secondPattern = Assert.IsType<Vector2D[]>(second.Operations.HoldingPattern);
+        Assert.All(firstPattern, a => Assert.All(secondPattern, b => Assert.True(a.DistanceTo(b) >= 6)));
+    }
+
+    [Fact]
+    public void LandingRetainsTrailForFiveSimulationSeconds()
+    {
+        var airport = AirportAt(1, "UKBB", 100);
+        var flight = Inbound(1, airport, 99.8m, altitude: 40);
+        flight.Operations.Phase = FlightPhase.Final;
+        flight.Operations.RunwayDesignator = "09";
+        flight.Operations.RunwayHeading = 90;
+        flight.TrailPoints.Add(new(94, 100, 1908));
+        using var engine = StartSector([airport], [flight]);
+
+        engine.Advance(1);
+        Assert.Equal(DateTime.UnixEpoch.AddSeconds(1), flight.Operations.LandedAt);
+        Assert.Equal(new TrailPoint(100, 100, 0), flight.TrailPoints[^1]);
+
+        engine.Advance(4);
+        Assert.NotEmpty(flight.TrailPoints);
+        engine.Advance(1);
+        Assert.Empty(flight.TrailPoints);
+        Assert.Equal(FlightPhase.Landed, flight.Operations.Phase);
+        Assert.True(flight.Operations.RunwayClearAt > engine.SimTime);
+    }
+
+    [Fact]
+    public void CruiseDescentStartsBeforeTheTerminalAreaAndJoinsFinalWithoutHolding()
+    {
+        var airport = AirportAt(1, "UKBB", 220);
+        var flight = Inbound(1, airport, 100, altitude: 30000);
+        flight.GroundSpeed = 450;
+        using var engine = StartSector([airport], [flight]);
+
+        engine.Advance(1);
+        Assert.Equal(FlightPhase.EnRoute, flight.Operations.Phase);
+        Assert.True(flight.Operations.ArrivalDescentStarted);
+        Assert.InRange(flight.Altitude, 29000, 29999);
+
+        engine.Advance(2400);
+        Assert.Equal(FlightPhase.Landed, flight.Operations.Phase);
+        Assert.DoesNotContain(engine.Radio.Logs, log =>
+            log.Message.Contains("hold at fix") || log.Message.Contains("go around"));
+    }
+
+    [Fact]
+    public void ParkedFlightRefuelsToCalculatedAmountBeforeTakeoff()
+    {
+        var departure = AirportAt(1, "UKLL", 40);
+        var arrival = AirportAt(2, "UKBB", 320);
+        var model = AircraftModelCatalog.CreateByIconType("A320")!;
+        var aircraft = new Aircraft { Id = 1, Callsign = "FUEL01", Model = model };
+        AircraftTracker.ScheduleDeparture(aircraft, departure, arrival, 22000, 400);
+        using var engine = StartSector([departure, arrival], [aircraft]);
+        decimal expected = AircraftPerformance.DepartureFuel(model, 280, 400, 0, 0, 90);
+
+        engine.Advance(1);
+        Assert.Equal(FlightPhase.Refueling, aircraft.Operations.Phase);
+        Assert.InRange(aircraft.FuelRemaining, 1, expected - 1);
+        Assert.False(aircraft.IsAirborne);
+        Assert.Equal(expected, aircraft.Operations.DepartureFuelKg);
+
+        engine.Advance(28);
+        Assert.True(aircraft.IsAirborne);
+        Assert.InRange(aircraft.FuelRemaining, expected - 25, expected);
+        Assert.Single(engine.Radio.Logs, log => log.SenderType == "ATC" && log.Message.Contains("cleared for takeoff"));
+    }
+
+    [Fact]
+    public void OccupiedStripBlocksItsReciprocalAndCrossingRunwayButLeavesParallelAvailable()
+    {
+        var departure = AirportAt(1, "UKLL", 40);
+        departure.Runways =
+        [
+            new() { Designator = "09L", Angle = 90 }, new() { Designator = "27R", Angle = 270 },
+            new() { Designator = "09R", Angle = 90 }, new() { Designator = "27L", Angle = 270 },
+            new() { Designator = "18", Angle = 180 }
+        ];
+        var arrival = AirportAt(2, "UKBB", 320);
+        var aircraft = new Aircraft { Id = 1, Callsign = "TST1", FuelRemaining = 10000 };
+        AircraftTracker.ScheduleDeparture(aircraft, departure, arrival, 22000, 400);
+        var occupant = new Aircraft
+        {
+            Id = 2, IsActive = false, ArrivalAirportIcao = departure.IcaoCode, Operations = new()
+            {
+                Phase = FlightPhase.Landed, RunwayDesignator = "27R", RunwayClearAt = DateTime.UnixEpoch.AddMinutes(2)
+            }
+        };
+        using var engine = StartSector([departure, arrival], [aircraft, occupant]);
+
+        Assert.True(RunwayLayout.SharesProtection(departure.Runways[0], departure.Runways[1]));
+        Assert.True(RunwayLayout.SharesProtection(departure.Runways[0], departure.Runways[4]));
+        Assert.False(RunwayLayout.SharesProtection(departure.Runways[0], departure.Runways[2]));
+
+        engine.Advance(1);
+        Assert.Equal("09R", aircraft.Operations.RunwayDesignator);
+        Assert.Equal((decimal)RunwayLayout.Center(departure, departure.Runways[2]).Y, aircraft.CoordY);
     }
 
     private static SimulationEngine StartSector(List<Airport> airports, List<Aircraft> aircraft, List<WeatherZone>? zones = null)

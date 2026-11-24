@@ -15,5 +15,5 @@ public class WeatherZone
     public decimal? MinAltitude { get; set; } // feet
     public decimal? MaxAltitude { get; set; } // feet
     public bool IsActive { get; set; } = true;
-    public bool BlocksFlight => IsActive && ZoneType is "RESTRICTED" or "MILITARY" or "NO_FLY_ZONE" or "MILITARY_DANGER" or "STORM";
+    public bool BlocksFlight => IsActive && ZoneType is "RESTRICTED" or "MILITARY" or "NO_FLY_ZONE" or "MILITARY_DANGER" or "STORM" or "TURBULENCE";
 }

@@ -18,6 +18,7 @@ public class SimulationEngine : IDisposable
 
     public long CurrentSeed { get; private set; } = 84920417;
     public bool IsRunning { get; private set; }
+    public const double MaxTimeScale = 16.0;
     public double TimeScale { get; private set; } = 1.0;
     public DateTime SimTime { get; private set; } = DateTime.UtcNow;
 
@@ -31,6 +32,10 @@ public class SimulationEngine : IDisposable
     public List<WeatherZone> WeatherZones { get; private set; } = [];
     public List<Waypoint> Waypoints { get; private set; } = [];
 
+    private HashSet<(int, int)> _conflictPairs = [];
+    private int _tickInProgress;
+    private readonly HashSet<int> _conflictingAircraft = [];
+    public IReadOnlySet<int> ConflictingAircraft => _conflictingAircraft;
     public event Action? StateUpdated;
     public event Action<CollisionAlert>? ConflictDetected;
 
@@ -39,7 +44,6 @@ public class SimulationEngine : IDisposable
         _trafficControl = new(Radio, Weather, CollisionDetector, () => SimTime);
         _timer = new System.Timers.Timer(100); // 10 ticks per second (100ms)
         _timer.Elapsed += OnTimerTick;
-        CollisionDetector.SeparationAlertTriggered += alert => ConflictDetected?.Invoke(alert);
     }
 
     public void LoadSector(WorldSector sector, DateTime? simTime = null)
@@ -48,7 +52,7 @@ public class SimulationEngine : IDisposable
         {
             CurrentSeed = sector.Seed;
             SimTime = simTime ?? DateTime.UtcNow;
-            _trafficControl.Reset();
+            ResetTraffic();
             Airports = [.. sector.Airports];
             ActiveAircraft = [.. sector.Aircraft];
             WeatherZones = [.. sector.WeatherZones];
@@ -58,6 +62,28 @@ public class SimulationEngine : IDisposable
 
         Radio.AddSystemLog("ATC RADAR", $"Airspace sector loaded (Seed: {CurrentSeed}). {Airports.Count} airports, {ActiveAircraft.Count(a => a.IsAirborne)} active airborne tracks.");
         StateUpdated?.Invoke();
+    }
+
+    public void ReplaceAircraft(List<Aircraft> aircraft)
+    {
+        lock (_lock)
+        {
+            ResetTraffic();
+            ActiveAircraft = [.. aircraft];
+        }
+        StateUpdated?.Invoke();
+    }
+
+    private void ResetTraffic()
+    {
+        _trafficControl.Reset();
+        _conflictPairs.Clear();
+        _conflictingAircraft.Clear();
+    }
+
+    public void ReadState(Action read)
+    {
+        lock (_lock) read();
     }
 
     public void AddAircraft(Aircraft aircraft)
@@ -152,28 +178,30 @@ public class SimulationEngine : IDisposable
         StateUpdated?.Invoke();
     }
 
-    public void TogglePlayback()
-    {
-        if (IsRunning) Pause();
-        else Start();
-    }
-
     public void SetTimeScale(double scale)
     {
-        TimeScale = Math.Clamp(scale, 1.0, 8.0);
+        if (!double.IsFinite(scale)) throw new ArgumentOutOfRangeException(nameof(scale));
+        lock (_lock) TimeScale = Math.Clamp(scale, 1.0, MaxTimeScale);
         Radio.AddSystemLog("SIM ENGINE", $"Simulation speed set to {TimeScale}x.");
         StateUpdated?.Invoke();
     }
 
     private void OnTimerTick(object? sender, System.Timers.ElapsedEventArgs e)
     {
-        lock (_lock)
+        if (Interlocked.Exchange(ref _tickInProgress, 1) != 0) return;
+        try
         {
-            if (!IsRunning) return;
-            AdvanceTraffic(TimeScale);
+            lock (_lock)
+            {
+                if (!IsRunning) return;
+                AdvanceTraffic(TimeSpan.FromMilliseconds(_timer.Interval).TotalSeconds * TimeScale);
+            }
+            StateUpdated?.Invoke();
         }
-
-        StateUpdated?.Invoke();
+        finally
+        {
+            Volatile.Write(ref _tickInProgress, 0);
+        }
     }
 
     public void Advance(double seconds)
@@ -190,10 +218,26 @@ public class SimulationEngine : IDisposable
             double step = Math.Min(seconds, 1);
             seconds -= step;
             SimTime = SimTime.AddSeconds(step);
+            _trafficControl.BeginStep(ActiveAircraft, step);
             foreach (var aircraft in ActiveAircraft)
                 _trafficControl.Update(aircraft, ActiveAircraft, Airports, SimTime, step, Tracker);
+            UpdateConflicts();
         }
-        CollisionDetector.CheckSeparation(ActiveAircraft);
+    }
+
+    private void UpdateConflicts()
+    {
+        var current = new HashSet<(int, int)>();
+        _conflictingAircraft.Clear();
+        foreach (var alert in CollisionDetector.CheckSeparation(ActiveAircraft))
+        {
+            var pair = (alert.Aircraft1.Id, alert.Aircraft2.Id);
+            current.Add(pair);
+            _conflictingAircraft.Add(pair.Item1);
+            _conflictingAircraft.Add(pair.Item2);
+            if (!_conflictPairs.Contains(pair)) ConflictDetected?.Invoke(alert);
+        }
+        _conflictPairs = current;
     }
 
     public void VectorAircraft(Aircraft aircraft, double heading)

@@ -11,12 +11,16 @@ public static class AviationIcons
         Source = new Uri("/ATCsim.UI;component/Resources/AviationIcons.xaml", UriKind.Relative)
     };
 
+    public static bool IsMriya(string? iconType) =>
+        string.Equals(iconType?.Trim(), "A225", StringComparison.OrdinalIgnoreCase);
+
     public static Geometry ForAircraft(string? iconType)
     {
         string key = iconType?.Trim().ToUpperInvariant() switch
         {
             "E195" or "E145" or "E135" => "RegionalAircraftIcon",
             "IL76" => "CargoAircraftIcon",
+            "A225" => "MriyaAircraftIcon",
             "GLEX" => "BusinessAircraftIcon",
             "SR20" or "SR22" or "S22T" => "PropellerAircraftIcon",
             _ => "PassengerAircraftIcon"

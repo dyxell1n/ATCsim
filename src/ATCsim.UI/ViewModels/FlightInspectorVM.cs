@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
+using System.Windows.Media;
 using ATCsim.Core.Entities;
 using ATCsim.Core.Kinematics;
 using ATCsim.Core.Services;
@@ -8,6 +9,7 @@ namespace ATCsim.UI.ViewModels;
 
 public class AirportDisplayModel
 {
+    public required Airport Airport { get; init; }
     public string Icao { get; init; } = string.Empty;
     public string Name { get; init; } = string.Empty;
     public string RunwaysText { get; init; } = string.Empty;
@@ -20,6 +22,26 @@ public class AirportDisplayModel
 public class FlightInspectorVM : ViewModelBase
 {
     private readonly SimulationEngine _engine;
+    private readonly AirportDiagram _airportDiagram = new();
+    private string _groundTrafficSummary = string.Empty;
+
+    public Drawing AirportLayout => _airportDiagram.StaticDrawing;
+    public Drawing AirportTraffic => _airportDiagram.TrafficDrawing;
+    public string GroundTrafficSummary
+    {
+        get => _groundTrafficSummary;
+        private set => SetProperty(ref _groundTrafficSummary, value);
+    }
+
+    public void RefreshAirportTraffic()
+    {
+        if (!IsAirportTab || SelectedAirport == null) return;
+        _airportDiagram.DrawTraffic(SelectedAirport.Airport, _engine.ActiveAircraft, _engine.SimTime);
+        string callsigns = _airportDiagram.MovingCallsigns;
+        GroundTrafficSummary = $"{_airportDiagram.ParkedCount} parked • {_airportDiagram.MovingCount} moving" +
+            (callsigns.Length > 0 ? $" ({callsigns})" : string.Empty) +
+            (_airportDiagram.FuelingCount > 0 ? $" • {_airportDiagram.FuelingCount} refueling" : string.Empty);
+    }
 
     private Aircraft? _selectedAircraft;
     private AirportDisplayModel? _selectedAirport;
@@ -53,16 +75,23 @@ public class FlightInspectorVM : ViewModelBase
             {
                 OnPropertyChanged(nameof(IsAircraftTab));
                 OnPropertyChanged(nameof(IsAirportTab));
+                if (IsAirportTab) _engine.ReadState(RefreshAirportTraffic);
             }
         }
     }
 
     public Aircraft? SelectedAircraft => _selectedAircraft;
+    public bool IsMriya => Resources.AviationIcons.IsMriya(_selectedAircraft?.Model?.IconType);
 
     public AirportDisplayModel? SelectedAirport
     {
         get => _selectedAirport;
-        set => SetProperty(ref _selectedAirport, value);
+        set
+        {
+            if (!SetProperty(ref _selectedAirport, value)) return;
+            _airportDiagram.DrawLayout(value?.Airport);
+            _engine.ReadState(RefreshAirportTraffic);
+        }
     }
 
     public string Callsign
@@ -165,7 +194,7 @@ public class FlightInspectorVM : ViewModelBase
         {
             string rwys = apt.Runways.Count > 0
                 ? string.Join(", ", apt.Runways.Select(r => $"RWY {r.Designator} ({r.Angle}°, {r.Length}m)"))
-                : "RWY 36R (360°, 4000m)";
+                : "No runways";
 
             string elev = apt.IcaoCode switch
             {
@@ -179,6 +208,7 @@ public class FlightInspectorVM : ViewModelBase
 
             var adm = new AirportDisplayModel
             {
+                Airport = apt,
                 Icao = apt.IcaoCode,
                 Name = apt.Name,
                 RunwaysText = rwys,
@@ -196,11 +226,13 @@ public class FlightInspectorVM : ViewModelBase
     public void SetSelectedAircraft(Aircraft? aircraft)
     {
         if (!SetProperty(ref _selectedAircraft, aircraft, nameof(SelectedAircraft))) return;
+        OnPropertyChanged(nameof(IsMriya));
         if (aircraft == null) return;
 
         Callsign = aircraft.Callsign;
         ModelName = aircraft.Model?.ModelName ?? "Boeing 737-800";
-        OperatorName = aircraft.Callsign.StartsWith("UKR") ? "Ukraine Int." :
+        OperatorName = IsMriya ? "Antonov Airlines" :
+                       aircraft.Callsign.StartsWith("UKR") ? "Ukraine Int." :
                        aircraft.Callsign.StartsWith("WZZ") ? "Wizz Air" :
                        aircraft.Callsign.StartsWith("LOT") ? "LOT Polish Airlines" : "Turkish Airlines";
 
@@ -213,11 +245,13 @@ public class FlightInspectorVM : ViewModelBase
         {
             FlightPhase.ArrivalQueue or FlightPhase.Holding => "HOLDING",
             FlightPhase.Departing => "DEPARTING",
+            FlightPhase.Refueling => "REFUELING",
             FlightPhase.Approach => "APPROACH",
             FlightPhase.Final => "FINAL",
             FlightPhase.MissedApproach => "GOING AROUND",
             FlightPhase.Landed => "LANDED",
-            _ => aircraft.IsAirborne ? "EN ROUTE" : "AWAITING DEPARTURE"
+            _ => aircraft.IsAirborne ? aircraft.Operations.ArrivalDescentStarted && !aircraft.HasManualHeadingOverride
+                ? "DESCENDING" : "EN ROUTE" : "AWAITING DEPARTURE"
         };
         if (_selectedAircraft != null && _selectedAircraft.Id != aircraft.Id)
             return;
@@ -236,10 +270,12 @@ public class FlightInspectorVM : ViewModelBase
 
         int fuel = (int)aircraft.FuelRemaining;
         FuelFormatted = $"{fuel:N0} kg";
-        decimal capacity = aircraft.Model?.FuelCapacity > 0 ? aircraft.Model.FuelCapacity : 20894m;
-        decimal percent = Math.Clamp(aircraft.FuelRemaining / capacity * 100m, 0m, 100m);
+        decimal capacity = AircraftPerformance.FuelCapacity(aircraft.Model);
+        decimal percent = Math.Clamp(aircraft.FuelRemaining, 0m, capacity) / capacity * 100m;
         decimal hourlyBurn = AircraftPerformance.FuelBurnPerHour(aircraft.Model);
-        int remainingMinutes = (int)(Math.Max(0m, aircraft.FuelRemaining) / hourlyBurn * 60m);
+        int remainingMinutes = hourlyBurn > 0
+            ? (int)Math.Min(int.MaxValue, (double)aircraft.FuelRemaining / (double)hourlyBurn * 60)
+            : 0;
         FuelPercent = $"{percent:0}% ({remainingMinutes / 60}h {remainingMinutes % 60}m)";
     }
 

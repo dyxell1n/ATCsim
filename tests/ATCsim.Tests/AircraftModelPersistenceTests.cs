@@ -19,6 +19,7 @@ public sealed class AircraftModelPersistenceTests : IDisposable
 
     [Theory]
     [InlineData("IL76", "CARGO")]
+    [InlineData("A225", "HEAVY")]
     [InlineData("GLEX", "BUSINESS")]
     [InlineData("SR22", "LIGHT")]
     public void SavedSession_RestoresAircraftModelIdentityAndCapabilities(string iconType, string category)

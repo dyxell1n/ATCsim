@@ -15,7 +15,10 @@ public record LogDisplayItem(
 public class LogsViewModel : ViewModelBase
 {
     private string _currentFilter = "ALL";
-    private readonly List<LogDisplayItem> _allLogs = [];
+    private const int DisplayLimit = 50;
+    private readonly Queue<LogDisplayItem> _recent = new();
+    private readonly Queue<LogDisplayItem> _radio = new();
+    private readonly Queue<LogDisplayItem> _alerts = new();
 
     public ObservableCollection<LogDisplayItem> FilteredLogs { get; } = [];
 
@@ -53,8 +56,14 @@ public class LogsViewModel : ViewModelBase
             isAlert,
             isRadio);
 
-        _allLogs.Insert(0, item);
-        ApplyFilter();
+        Remember(_recent, item);
+        if (isRadio) Remember(_radio, item);
+        if (isAlert) Remember(_alerts, item);
+        if (MatchesFilter(item))
+        {
+            FilteredLogs.Insert(0, item);
+            if (FilteredLogs.Count > DisplayLimit) FilteredLogs.RemoveAt(DisplayLimit);
+        }
     }
 
     public void AddLog(CommunicationLog log)
@@ -73,16 +82,23 @@ public class LogsViewModel : ViewModelBase
     private void ApplyFilter()
     {
         FilteredLogs.Clear();
-        var matches = CurrentFilter switch
-        {
-            "RADIO" => _allLogs.Where(x => x.IsRadio),
-            "ALERTS" => _allLogs.Where(x => x.IsAlert),
-            _ => _allLogs
-        };
-
-        foreach (var item in matches.Take(50))
+        var history = CurrentFilter switch { "RADIO" => _radio, "ALERTS" => _alerts, _ => _recent };
+        foreach (var item in history.Reverse())
         {
             FilteredLogs.Add(item);
         }
     }
+
+    private static void Remember(Queue<LogDisplayItem> history, LogDisplayItem item)
+    {
+        if (history.Count == DisplayLimit) history.Dequeue();
+        history.Enqueue(item);
+    }
+
+    private bool MatchesFilter(LogDisplayItem item) => CurrentFilter switch
+    {
+        "RADIO" => item.IsRadio,
+        "ALERTS" => item.IsAlert,
+        _ => true
+    };
 }

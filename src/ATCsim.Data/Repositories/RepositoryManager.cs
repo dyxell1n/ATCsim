@@ -12,7 +12,8 @@ namespace ATCsim.Data.Repositories;
 /// </summary>
 public class RepositoryManager
 {
-    private sealed record AircraftOperationsSnapshot(FlightOperationsState Operations, bool IsActive, bool HasManualHeadingOverride);
+    private sealed record AircraftOperationsSnapshot(FlightOperationsState Operations, bool IsActive, bool HasManualHeadingOverride,
+        AircraftModel? Model = null, double TrailTimer = 0);
 
     public DatabaseContext Context { get; }
     public AirportRepository Airports { get; }
@@ -39,6 +40,71 @@ public class RepositoryManager
         using var conn = Context.CreateConnection();
         using var trans = conn.BeginTransaction();
 
+        SyncSector(sector, conn, trans);
+        trans.Commit();
+    }
+
+    // Portable files come from other databases. Match stable names before assigning local foreign keys.
+    public void ImportSector(WorldSector sector)
+    {
+        using var conn = Context.CreateConnection();
+        using var trans = conn.BeginTransaction();
+        var airports = new LocalIds(conn, trans, "SELECT id, icao_code FROM airports");
+        var runways = new LocalIds(conn, trans, "SELECT id, airport_id || '/' || designator FROM runways");
+        var models = new LocalIds(conn, trans, "SELECT id, model_name FROM aircraft_models");
+        var aircraft = new LocalIds(conn, trans, "SELECT id, callsign FROM aircrafts");
+        foreach (var airport in sector.Airports)
+        {
+            airport.Id = airports.Resolve(airport.IcaoCode, airport.Id);
+            foreach (var runway in airport.Runways)
+            {
+                runway.AirportId = airport.Id;
+                runway.Id = runways.Resolve($"{airport.Id}/{runway.Designator}", runway.Id);
+            }
+        }
+        foreach (var plane in sector.Aircraft)
+        {
+            if (plane.Model is { } model)
+                plane.ModelId = model.Id = models.Resolve(model.ModelName, model.Id);
+            plane.Id = aircraft.Resolve(plane.Callsign, plane.Id);
+        }
+        SyncSector(sector, conn, trans);
+        trans.Commit();
+    }
+
+    private sealed class LocalIds
+    {
+        private readonly Dictionary<string, int> _byName = new(StringComparer.Ordinal);
+        private readonly HashSet<int> _used = [];
+        private int _next = 1;
+
+        public LocalIds(SqliteConnection connection, SqliteTransaction transaction, string query)
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.Transaction = transaction;
+            cmd.CommandText = query;
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                int id = reader.GetInt32(0);
+                _byName[reader.GetString(1)] = id;
+                _used.Add(id);
+            }
+        }
+
+        public int Resolve(string name, int preferred)
+        {
+            if (_byName.TryGetValue(name, out int id)) return id;
+            while (_used.Contains(_next)) _next++;
+            id = preferred > 0 && !_used.Contains(preferred) ? preferred : _next;
+            _byName.Add(name, id);
+            _used.Add(id);
+            return id;
+        }
+    }
+
+    private static void SyncSector(WorldSector sector, SqliteConnection conn, SqliteTransaction trans)
+    {
         // Sync airports
         foreach (var apt in sector.Airports)
         {
@@ -83,10 +149,10 @@ public class RepositoryManager
             }
         }
 
-        // Sync models and aircraft
+        var storedModels = new HashSet<int>();
         foreach (var ac in sector.Aircraft)
         {
-            if (ac.Model != null)
+            if (ac.Model != null && storedModels.Add(ac.Model.Id))
             {
                 using var modelCmd = conn.CreateCommand();
                 modelCmd.Transaction = trans;
@@ -153,30 +219,6 @@ public class RepositoryManager
             zoneCmd.Parameters.AddWithValue("@act", zone.IsActive ? 1 : 0);
             zoneCmd.ExecuteNonQuery();
         }
-
-        trans.Commit();
-    }
-
-    /// <summary>
-    /// Returns quick total record counts for database health indication.
-    /// </summary>
-    public int GetTotalRecordsCount()
-    {
-        using var conn = Context.CreateConnection();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = @"
-            SELECT 
-                (SELECT COUNT(*) FROM airports) +
-                (SELECT COUNT(*) FROM runways) +
-                (SELECT COUNT(*) FROM aircraft_models) +
-                (SELECT COUNT(*) FROM aircrafts) +
-                (SELECT COUNT(*) FROM flights) +
-                (SELECT COUNT(*) FROM communication_logs) +
-                (SELECT COUNT(*) FROM weather_zones) +
-                (SELECT COUNT(*) FROM sim_logs);
-        ";
-        object? result = cmd.ExecuteScalar();
-        return Convert.ToInt32(result ?? 0);
     }
 
     public bool HasSavedSession()
@@ -199,14 +241,15 @@ public class RepositoryManager
         using var sessCmd = conn.CreateCommand();
         sessCmd.Transaction = trans;
         sessCmd.CommandText = @"
-            INSERT INTO sim_session (id, world_seed, sim_time, time_scale, terrain_version, saved_at, zones_json)
-            VALUES (1, @seed, @st, @ts, @terrainVersion, @now, @zones)
+            INSERT INTO sim_session (id, world_seed, sim_time, time_scale, terrain_version, saved_at, zones_json, airports_json)
+            VALUES (1, @seed, @st, @ts, @terrainVersion, @now, @zones, @airports)
             ON CONFLICT(id) DO UPDATE SET
                 world_seed = excluded.world_seed,
                 sim_time = excluded.sim_time,
                 time_scale = excluded.time_scale,
                 terrain_version = excluded.terrain_version,
                 zones_json = excluded.zones_json,
+                airports_json = excluded.airports_json,
                 saved_at = excluded.saved_at;
         ";
         sessCmd.Parameters.AddWithValue("@seed", seed);
@@ -214,6 +257,7 @@ public class RepositoryManager
         sessCmd.Parameters.AddWithValue("@ts", timeScale);
         sessCmd.Parameters.AddWithValue("@terrainVersion", terrainVersion);
         sessCmd.Parameters.AddWithValue("@now", DateTime.UtcNow.ToString("o"));
+        sessCmd.Parameters.AddWithValue("@airports", JsonSerializer.Serialize(airports));
         sessCmd.Parameters.AddWithValue("@zones", JsonSerializer.Serialize(weatherZones));
         sessCmd.ExecuteNonQuery();
 
@@ -263,7 +307,7 @@ public class RepositoryManager
             acCmd.Parameters.AddWithValue("@trail", trailJson);
             acCmd.Parameters.AddWithValue("@departureSpeed", ac.PlannedDepartureSpeed is { } speed ? (double)speed : DBNull.Value);
             acCmd.Parameters.AddWithValue("@operations", JsonSerializer.Serialize(
-                new AircraftOperationsSnapshot(ac.Operations, ac.IsActive, ac.HasManualHeadingOverride)));
+                new AircraftOperationsSnapshot(ac.Operations, ac.IsActive, ac.HasManualHeadingOverride, ac.Model, ac.TrailTimer)));
             acCmd.ExecuteNonQuery();
         }
 
@@ -271,20 +315,19 @@ public class RepositoryManager
     }
 
     public (long Seed, DateTime SimTime, double TimeScale, List<Aircraft> Aircraft, int TerrainVersion,
-        List<WeatherZone>? WeatherZones)? LoadSavedSession()
+        List<WeatherZone>? WeatherZones, List<Airport>? Airports)? LoadSavedSession()
     {
-        if (!HasSavedSession()) return null;
-
         using var conn = Context.CreateConnection();
         long seed = 84920417;
         DateTime simTime = DateTime.UtcNow;
         double timeScale = 1.0;
         int terrainVersion;
         List<WeatherZone>? weatherZones;
+        List<Airport>? airports;
 
         using (var cmd = conn.CreateCommand())
         {
-            cmd.CommandText = "SELECT world_seed, sim_time, time_scale, terrain_version, zones_json FROM sim_session WHERE id = 1;";
+            cmd.CommandText = "SELECT world_seed, sim_time, time_scale, terrain_version, zones_json, airports_json FROM sim_session WHERE id = 1;";
             using var reader = cmd.ExecuteReader();
             if (reader.Read())
             {
@@ -292,6 +335,7 @@ public class RepositoryManager
                 simTime = DateTime.Parse(reader.GetString(1), null, System.Globalization.DateTimeStyles.RoundtripKind);
                 timeScale = reader.GetDouble(2);
                 terrainVersion = reader.GetInt32(3);
+                airports = reader.IsDBNull(5) ? null : JsonSerializer.Deserialize<List<Airport>>(reader.GetString(5));
                 weatherZones = reader.IsDBNull(4) ? null : JsonSerializer.Deserialize<List<WeatherZone>>(reader.GetString(4));
             }
             else return null;
@@ -347,6 +391,9 @@ public class RepositoryManager
 
                 if (!reader.IsDBNull(20) && JsonSerializer.Deserialize<AircraftOperationsSnapshot>(reader.GetString(20)) is { } snapshot)
                 {
+                    ac.Model = snapshot.Model ?? ac.Model;
+                    ac.ModelId = ac.Model!.Id;
+                    ac.TrailTimer = snapshot.TrailTimer;
                     ac.Operations = snapshot.Operations;
                     ac.IsActive = snapshot.IsActive;
                     ac.HasManualHeadingOverride = snapshot.HasManualHeadingOverride;
@@ -367,7 +414,7 @@ public class RepositoryManager
                     catch { }
                 }
 
-                if (ac.TrailPoints.Count == 0)
+                if (ac.TrailPoints.Count == 0 && ac.Operations.Phase != FlightPhase.Landed)
                 {
                     double startX = ac.OriginX > 5.0 ? ac.OriginX : (double)ac.CoordX;
                     double startY = ac.OriginY > 5.0 ? ac.OriginY : (double)ac.CoordY;
@@ -379,7 +426,7 @@ public class RepositoryManager
             }
         }
 
-        return (seed, simTime, timeScale, list, terrainVersion, weatherZones);
+        return (seed, simTime, timeScale, list, terrainVersion, weatherZones, airports);
     }
 }
 

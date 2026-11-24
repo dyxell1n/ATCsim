@@ -7,6 +7,8 @@
 
   <ItemGroup>
     <Resource Include="Assets\logo.png" />
+    <Content Include="Presets\*.atcpreset" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Saves\*.atcsave" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <PropertyGroup>

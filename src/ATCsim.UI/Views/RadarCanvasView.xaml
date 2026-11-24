@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:views="clr-namespace:ATCsim.UI.Views"
              xmlns:vm="clr-namespace:ATCsim.UI.ViewModels"
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1000">
@@ -129,22 +130,8 @@
             <TextBlock Canvas.Left="585" Canvas.Top="65" Text="40 NM" 
                        FontFamily="Montserrat, Segoe UI" FontSize="9" FontWeight="Bold" Foreground="#CED4DA" Opacity="0.7"/>
 
-            <!-- 3. Dynamic Altitude-Gradient Breadcrumb Trails (Drawn every second per aircraft) -->
-            <ItemsControl ItemsSource="{Binding AllTrailSegments}" IsHitTestVisible="False">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <Canvas />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Line X1="{Binding X1}" Y1="{Binding Y1}" X2="{Binding X2}" Y2="{Binding Y2}"
-                              Stroke="{Binding StrokeBrush}" StrokeThickness="3.5"
-                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                              Opacity="0.85"/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <views:DrawingLayer Drawing="{Binding TrailDrawing}" Width="1000" Height="700"
+                             Opacity="0.85" IsHitTestVisible="False"/>
 
             <!-- Seed-generated weather hazards -->
             <ItemsControl ItemsSource="{Binding WeatherZones}" Width="1000" Height="700" IsHitTestVisible="False">
@@ -164,20 +151,6 @@
                 </DataTemplate></ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <!-- Seed-generated navigation waypoints -->
-            <ItemsControl ItemsSource="{Binding Waypoints}" Width="1000" Height="700" IsHitTestVisible="False">
-                <ItemsControl.ItemsPanel><ItemsPanelTemplate><Canvas/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                <ItemsControl.ItemContainerStyle><Style TargetType="ContentPresenter">
-                    <Setter Property="Canvas.Left" Value="{Binding CoordX}"/>
-                    <Setter Property="Canvas.Top" Value="{Binding CoordY}"/>
-                </Style></ItemsControl.ItemContainerStyle>
-                <ItemsControl.ItemTemplate><DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <Ellipse Width="6" Height="6" Fill="#FF8787"/>
-                        <TextBlock Text="{Binding Name}" Margin="4,0,0,0" FontSize="9" FontWeight="Bold" Foreground="#FFFFFF"/>
-                    </StackPanel>
-                </DataTemplate></ItemsControl.ItemTemplate>
-            </ItemsControl>
             <!-- 6. Dynamic Interactive Airports (Clickable Beacons & Cards) -->
             <ItemsControl ItemsSource="{Binding Airports}">
                 <ItemsControl.ItemsPanel>
@@ -239,10 +212,23 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Canvas Margin="-17,-17,0,0">
-                            <!-- Subtle Light Forward Heading Direction Vector -->
                             <Line X1="17" Y1="17" X2="{Binding VectorEndX}" Y2="{Binding VectorEndY}"
-                                  Stroke="#F8F9FA" StrokeThickness="1.5" Opacity="0.85"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" IsHitTestVisible="False">
+                                <Line.Style>
+                                    <Style TargetType="Line">
+                                        <Setter Property="Stroke" Value="#F8F9FA"/>
+                                        <Setter Property="StrokeThickness" Value="1.5"/>
+                                        <Setter Property="Opacity" Value="0.85"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMriya}" Value="True">
+                                                <Setter Property="Stroke" Value="#7DD3FC"/>
+                                                <Setter Property="StrokeThickness" Value="1.8"/>
+                                                <Setter Property="Opacity" Value="1"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Line.Style>
+                            </Line>
 
                             <!-- Plane Icon Button / Hitbox -->
                             <Button Command="{Binding DataContext.SelectTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -255,8 +241,18 @@
                                         <RotateTransform Angle="{Binding Heading}"/>
                                     </Grid.RenderTransform>
                                     <Path Data="{Binding IconGeometry}" Fill="#212529" Stretch="Uniform"
-                                          Stroke="#F8F9FA" StrokeThickness="0.8" StrokeLineJoin="Round"
-                                          IsHitTestVisible="False"/>
+                                          Stroke="#F8F9FA" StrokeLineJoin="Round" IsHitTestVisible="False">
+                                        <Path.Style>
+                                            <Style TargetType="Path">
+                                                <Setter Property="StrokeThickness" Value="0.8"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsMriya}" Value="True">
+                                                        <Setter Property="StrokeThickness" Value="0.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Path.Style>
+                                    </Path>
                                 </Grid>
                             </Button>
 
@@ -286,7 +282,10 @@
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="{Binding Callsign}" FontFamily="Montserrat, Segoe UI" FontSize="10" FontWeight="Bold" Foreground="#212529" Margin="0,0,4,0"/>
-                                        <TextBlock Text="{Binding ShortModel}" FontFamily="Montserrat, Segoe UI" FontSize="9" Foreground="#6C757D"/>
+                                        <Image Source="{StaticResource UkrainianFlag}" Width="12" Height="8" Margin="0,0,3,0"
+                                               Visibility="{Binding IsMriya, Converter={StaticResource BoolToVisibility}}"
+                                               AutomationProperties.Name="Прапор України"/>
+                                        <TextBlock Text="{Binding RadarModelLabel}" FontFamily="Montserrat, Segoe UI" FontSize="9" Foreground="#6C757D"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="{Binding FlightLevelText}" FontFamily="Consolas, Segoe UI" FontSize="9" FontWeight="Bold" Foreground="#7048E8" Margin="0,0,4,0"/>
