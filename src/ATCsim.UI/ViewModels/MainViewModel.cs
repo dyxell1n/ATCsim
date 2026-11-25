@@ -3,7 +3,9 @@ using System.Windows.Input;
 using ATCsim.Core.Entities;
 using ATCsim.Core.Services;
 using ATCsim.Core.WorldGeneration;
+using ATCsim.Data.Diagnostics;
 using ATCsim.Data.Repositories;
+using Microsoft.Data.Sqlite;
 
 namespace ATCsim.UI.ViewModels;
 
@@ -226,25 +228,13 @@ public partial class MainViewModel : ViewModelBase
         RunCommand = new RelayCommand(() =>
         {
             _engine.Start();
-            _repoManager.Logs.AddSimLog(new SimLog
-            {
-                WorldSeed = _engine.CurrentSeed,
-                EventType = "SIM_START",
-                Details = "Simulation loop started by operator.",
-                SimTime = _engine.SimTime
-            });
+            RecordSimulationEvent("SIM_START", "Simulation loop started by operator.");
         });
 
         PauseCommand = new RelayCommand(() =>
         {
             _engine.Pause();
-            _repoManager.Logs.AddSimLog(new SimLog
-            {
-                WorldSeed = _engine.CurrentSeed,
-                EventType = "SIM_PAUSE",
-                Details = "Simulation loop paused by operator.",
-                SimTime = _engine.SimTime
-            });
+            RecordSimulationEvent("SIM_PAUSE", "Simulation loop paused by operator.");
         });
 
         ToggleSpeedCommand = new RelayCommand(() => SetPlaybackSpeed(_engine.TimeScale switch
@@ -272,14 +262,21 @@ public partial class MainViewModel : ViewModelBase
 
         // Wire simulation engine events
         _engine.StateUpdated += OnSimulationStateUpdated;
-        _engine.ConflictDetected += alert => _pendingAlerts.Enqueue(new SimLog
+        _engine.UpdateFailed += exception =>
+        {
+            if (Application.Current is App app)
+                app.Dispatcher.InvokeAsync(() => app.ReportFatalError(exception, "Simulation update"));
+            else
+                AppDiagnostics.Error(exception, "Simulation update failed");
+        };
+        _engine.ConflictDetected += alert => _pendingAlerts.Enqueue((new SimLog
         {
             WorldSeed = _engine.CurrentSeed,
             SimTime = _engine.SimTime,
             EventType = "COLLISION_WARNING",
             AircraftId = alert.Aircraft1.Id,
             Details = $"{alert.Aircraft1.Callsign} and {alert.Aircraft2.Callsign}: {alert.HorizontalDistanceNm} NM / {alert.VerticalDistanceFt} ft."
-        });
+        }, alert.Aircraft2.Id, alert.HorizontalDistanceNm, alert.VerticalDistanceFt));
         _engine.Radio.MessageLogged += log =>
         {
             _pendingRadio.Enqueue(log);
@@ -309,7 +306,9 @@ public partial class MainViewModel : ViewModelBase
                 MessageBox.Show("An aircraft with this callsign is already on the radar.");
                 return;
             }
-            _repoManager.ImportSector(new WorldSector { Seed = _engine.CurrentSeed, Aircraft = [plane] });
+            if (!TryWriteDatabase(() => _repoManager.ImportSector(new WorldSector { Seed = _engine.CurrentSeed, Aircraft = [plane] }),
+                    "Add aircraft"))
+                return;
             _engine.AddAircraft(plane);
 
             var trackVm = new AircraftTrackViewModel(plane);
@@ -328,7 +327,10 @@ public partial class MainViewModel : ViewModelBase
         {
             var newZone = dlg.CreatedZone;
             newZone.Id = _engine.WeatherZones.Select(zone => zone.Id).DefaultIfEmpty().Max() + 1;
-            _repoManager.SyncSectorToDatabase(new WorldSector { Seed = _engine.CurrentSeed, WeatherZones = [newZone] });
+            if (!TryWriteDatabase(
+                    () => _repoManager.SyncSectorToDatabase(new WorldSector { Seed = _engine.CurrentSeed, WeatherZones = [newZone] }),
+                    "Add weather zone"))
+                return;
             _engine.AddWeatherZone(newZone);
             Radar.WeatherZones.Add(new WeatherZoneViewModel(newZone));
             Logs.AddLog("• METEO", "RADAR CENTER", $"New weather restriction {newZone.Name} ({newZone.ZoneType}) activated.", isRadio: false);
@@ -350,7 +352,8 @@ public partial class MainViewModel : ViewModelBase
                 MessageBox.Show("An airport with this ICAO code is already on the map.");
                 return;
             }
-            _repoManager.ImportSector(new WorldSector { Airports = [apt] });
+            if (!TryWriteDatabase(() => _repoManager.ImportSector(new WorldSector { Airports = [apt] }), "Add airport"))
+                return;
             _engine.AddAirport(apt);
             Radar.RefreshAirportsList(_engine.Airports);
             Inspector.LoadAirports(_engine.Airports);
@@ -372,7 +375,8 @@ public partial class MainViewModel : ViewModelBase
 
         if (dlg.ShowDialog() == true)
         {
-            _repoManager.Airports.UpdateAirport(dlg.EditedAirport);
+            if (!TryWriteDatabase(() => _repoManager.Airports.UpdateAirport(dlg.EditedAirport), "Edit airport"))
+                return;
             _engine.UpdateAirport(dlg.EditedAirport);
             Radar.RefreshAirportsList(_engine.Airports);
             Inspector.LoadAirports(_engine.Airports);
@@ -381,32 +385,62 @@ public partial class MainViewModel : ViewModelBase
 
     private void ExecuteExitAndSave()
     {
+        bool wasRunning = _engine.IsRunning;
         _engine.Pause();
         FlushLogs();
-        _repoManager.SaveSessionProgress(
+        if (!TryWriteDatabase(() => _repoManager.SaveSessionProgress(
             _engine.CurrentSeed,
             _engine.SimTime,
             _engine.TimeScale,
             _engine.Airports,
             _engine.ActiveAircraft,
             _engine.WeatherZones,
-            _terrainVersion);
-
-        _repoManager.Logs.AddSimLog(new SimLog
+            _terrainVersion), "Save session"))
         {
-            WorldSeed = _engine.CurrentSeed,
-            EventType = "SESSION_SAVED_EXIT",
-            Details = $"Session progress saved: {_engine.ActiveAircraft.Count} aircraft, {_engine.Airports.Count} airports.",
-            SimTime = _engine.SimTime
-        });
+            if (wasRunning) _engine.Start();
+            return;
+        }
+
+        RecordSimulationEvent("SESSION_SAVED_EXIT",
+            $"Session progress saved: {_engine.ActiveAircraft.Count} aircraft, {_engine.Airports.Count} airports.");
 
         MessageBox.Show(
-            "Прогрес симуляції (позиції літаків, історія траєкторій, аеропорти та логи) успішно збережено в базі даних SQLite!\n\nПрограма завершує роботу.",
+            "Сесію симуляції збережено в базі даних SQLite.\n\nПрограма завершує роботу.",
             "ATCsim - Збереження та вихід",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
 
         Application.Current?.Shutdown();
+    }
+
+    private bool TryWriteDatabase(Action write, string operation)
+    {
+        try
+        {
+            write();
+            return true;
+        }
+        catch (SqliteException exception)
+        {
+            AppDiagnostics.Error(exception, "SQLite write failed during {Operation}", operation);
+            MessageBox.Show("Не вдалося зберегти зміни в локальній базі даних. Перевірте доступ до бази й повторіть спробу.",
+                "ATCsim — база даних", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+    }
+
+    private void RecordSimulationEvent(string eventType, string details)
+    {
+        var log = new SimLog
+        {
+            WorldSeed = _engine.CurrentSeed,
+            EventType = eventType,
+            Details = details,
+            SimTime = _engine.SimTime
+        };
+        AppDiagnostics.Information("Simulation event {EventType} in sector {WorldSeed} at {SimTime}",
+            log.EventType, log.WorldSeed, log.SimTime);
+        TryWriteJournal(() => _repoManager.Logs.AddSimLog(log));
     }
 
     private void UpdateFlightRouteBanner(Aircraft ac)
@@ -499,18 +533,23 @@ public partial class MainViewModel : ViewModelBase
                 "Некоректний seed", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
-        _engine.Pause();
-
         var sector = _worldGenerator.GenerateSector(seed);
-        _repoManager.ImportSector(sector);
+        bool wasRunning = _engine.IsRunning;
+        _engine.Pause();
+        FlushLogs();
+        if (!TryWriteDatabase(() => _repoManager.ImportSector(sector), "Generate sector"))
+        {
+            if (wasRunning) _engine.Start();
+            return;
+        }
         _engine.LoadSector(sector);
         _terrainVersion = WorldSector.CurrentTerrainVersion;
         RefreshRadarSector(sector);
 
-        _repoManager.SaveSessionProgress(seed, _engine.SimTime, _engine.TimeScale,
-            sector.Airports, sector.Aircraft, sector.WeatherZones, _terrainVersion);
-
-        Logs.AddLog("• WORLD GEN", "SEED ENGINE", $"Procedural sector generated with seed {seed}. Saved to SQLite.", isRadio: false);
+        bool saved = TryWriteDatabase(() => _repoManager.SaveSessionProgress(seed, _engine.SimTime, _engine.TimeScale,
+            sector.Airports, sector.Aircraft, sector.WeatherZones, _terrainVersion), "Save generated sector");
+        Logs.AddLog("• WORLD GEN", "SEED ENGINE",
+            $"Procedural sector generated with seed {seed}.{(saved ? " Saved to SQLite." : "")}", isRadio: false);
     }
 
     private void RefreshRadarSector(WorldSector sector)
@@ -524,14 +563,16 @@ public partial class MainViewModel : ViewModelBase
         ActiveTargetsText = $"{_engine.ActiveAircraft.Count(a => a.IsAirborne)} AIRBORNE";
 
     private readonly System.Collections.Concurrent.ConcurrentQueue<CommunicationLog> _pendingRadio = new();
-    private readonly System.Collections.Concurrent.ConcurrentQueue<SimLog> _pendingAlerts = new();
+    private readonly System.Collections.Concurrent.ConcurrentQueue<
+        (SimLog Log, int OtherAircraftId, double HorizontalDistanceNm, decimal VerticalDistanceFt)> _pendingAlerts = new();
     private int _refreshQueued;
+    private bool _journalWriteFailed;
 
     private void OnSimulationStateUpdated()
     {
         var dispatcher = Application.Current?.Dispatcher;
         if (dispatcher == null || dispatcher.HasShutdownStarted || Interlocked.Exchange(ref _refreshQueued, 1) != 0) return;
-        dispatcher.InvokeAsync(() =>
+        dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() =>
         {
             Interlocked.Exchange(ref _refreshQueued, 0);
             _engine.ReadState(() =>
@@ -548,7 +589,7 @@ public partial class MainViewModel : ViewModelBase
                 }
             });
             FlushLogs();
-        }, System.Windows.Threading.DispatcherPriority.Background);
+        }));
     }
 
     private void FlushLogs()
@@ -560,12 +601,41 @@ public partial class MainViewModel : ViewModelBase
             Logs.AddLog(log);
             if (log.AirportId > 0 && log.SenderType is "ATC" or "AIRCRAFT") radio.Add(log);
         }
-        while (_pendingAlerts.TryDequeue(out var alert))
+        while (_pendingAlerts.TryDequeue(out var incident))
         {
+            var alert = incident.Log;
             Logs.AddLog("• LOSS OF SEPARATION", "SAFETY ALERT", alert.Details, isAlert: true, time: alert.SimTime);
+            AppDiagnostics.Warning(
+                "Loss of separation in sector {WorldSeed} at {SimTime} between {AircraftId} and {OtherAircraftId} ({HorizontalDistanceNm} NM / {VerticalDistanceFt} ft)",
+                alert.WorldSeed, alert.SimTime, alert.AircraftId, incident.OtherAircraftId,
+                incident.HorizontalDistanceNm, incident.VerticalDistanceFt);
             alerts.Add(alert);
         }
         if (radio.Count + alerts.Count == 0) return;
-        _repoManager.Logs.AddBatch(radio, alerts);
+        TryWriteJournal(() => _repoManager.Logs.AddBatch(radio, alerts));
+    }
+
+    private void TryWriteJournal(Action write)
+    {
+        try
+        {
+            write();
+        }
+        catch (SqliteException exception)
+        {
+            if (!_journalWriteFailed)
+            {
+                AppDiagnostics.Error(exception, "SQLite journal write failed");
+                Logs.AddLog("• STORAGE", "SQLITE", "Не вдалося записати події до бази даних.", isAlert: true);
+                _journalWriteFailed = true;
+            }
+            return;
+        }
+
+        if (_journalWriteFailed)
+        {
+            _journalWriteFailed = false;
+            AppDiagnostics.Information("SQLite journal write recovered");
+        }
     }
 }

@@ -25,8 +25,8 @@ Any LLM or developer working on this codebase must consult this document before 
 | **5** | Solution Decomposition & MVP Baseline | **[x] Completed** | [./docs/Report_05.md](./docs/Report_05.md) | O. Bezkorovainyi, M. Borkov |
 | **6** | Iterative Feature Implementation | **[ ] Planned** | Feature branches & PRs | All |
 | **7** | Automated Testing & Quality Assurance | **[ ] Planned** | Unit & integration test suites | V. Ruban |
-| **8** | Continuous Integration (CI/CD) | **[ ] Planned** | GitHub Actions workflows | V. Ruban |
-| **9** | Logging, Exception Handling & Security Audit | **[ ] Planned** | Structured logging, sanitizers | M. Borkov, V. Ruban |
+| **8** | Continuous Integration (CI/CD) | **[x] Completed** | [Report_08.md](../docs/Report_08.md), [CI workflow](../.github/workflows/ci.yml) | V. Ruban |
+| **9** | Logging, Exception Handling & Security Audit | **[x] Completed** | [Report_09.md](../docs/Report_09.md) | M. Borkov, V. Ruban |
 | **10** | Release Finalization & Project Defense | **[ ] Planned** | Final demo & technical review | All |
 
 ---
@@ -147,29 +147,30 @@ Any LLM or developer working on this codebase must consult this document before 
 
 ---
 
-### Stage 8: Continuous Integration (CI/CD) [PLANNED]
+### Stage 8: Continuous Integration (CI/CD) [COMPLETED]
 *Objective: Automate build and test validation via GitHub Actions.*
 
-- [ ] Create workflow file `.github/workflows/ci.yml` (Owner: V. Ruban).
-- [ ] Automated build step: `dotnet build --configuration Release`.
-- [ ] Automated test step: `dotnet test --no-build --verbosity normal`.
-- [ ] Enforce PR status checks to block merging on failure.
+- [x] Create workflow file `.github/workflows/ci.yml` (Owner: V. Ruban).
+- [x] Build the solution in Release on GitHub Actions.
+- [x] Test the Release build on GitHub Actions.
+- [x] Require the GitHub Actions status check `Build and test (Windows)` on `main`.
 
 ---
 
-### Stage 9: Logging, Exception Handling & Security Audit [PLANNED]
+### Stage 9: Logging, Exception Handling & Security Audit [COMPLETED]
 *Objective: Guarantee application stability, auditability, and data security.*
 
-- [ ] Structured Logging (Owner: M. Borkov):
-  - [ ] Integrate structured logging (Serilog or `Microsoft.Extensions.Logging`).
-  - [ ] Log lifecycle events: session start/stop, separation loss alerts, database failures.
-  - [ ] Log file rotation in local application data directory.
-- [ ] Global Exception Handling (Owner: O. Bezkorovainyi):
-  - [ ] Register `DispatcherUnhandledException` in WPF `App.xaml.cs`.
-  - [ ] Eliminate empty `catch { }` blocks across the codebase.
-- [ ] Security Audit (Owner: V. Ruban):
-  - [ ] Sanitize file paths against Path Traversal vulnerabilities.
-  - [ ] Verify zero hardcoded secrets or sensitive credentials.
+- [x] Structured logging (Owner M. Borkov).
+  - [x] Use Serilog for structured JSON Lines diagnostics.
+  - [x] Record application and simulation lifecycle events, loss of separation and SQLite failures.
+  - [x] Rotate diagnostic files under the local application data directory.
+- [x] Exception handling (Owner O. Bezkorovainyi).
+  - [x] Handle fatal WPF dispatcher and background simulation failures.
+  - [x] Replace empty catches with specific recovery and diagnostics.
+- [x] Basic security review (Owner V. Ruban).
+  - [x] Normalize user-selected scenario paths and constrain bundled examples to direct child files.
+  - [x] Validate scenario data before updating the live sector.
+  - [x] Scan project text files for common hardcoded credentials and check advisories for NuGet dependencies.
 
 ---
 

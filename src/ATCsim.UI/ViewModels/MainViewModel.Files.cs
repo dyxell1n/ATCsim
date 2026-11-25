@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using ATCsim.Core.WorldGeneration;
 using ATCsim.Data;
+using ATCsim.Data.Diagnostics;
 using ATCsim.Data.Dto;
 using Microsoft.Data.Sqlite;
 using Microsoft.Win32;
@@ -28,20 +29,24 @@ public partial class MainViewModel
         if (!ControlsEnabled) return;
         string extension = preset ? "atcpreset" : "atcsave";
         string label = preset ? "Aircraft preset" : "Map save";
-        FileDialog dialog = import ? new OpenFileDialog() : new SaveFileDialog
-        {
-            FileName = preset ? "Aircraft" : $"Sector-{_engine.CurrentSeed}"
-        };
-        dialog.Title = $"{(import ? "Import" : "Export")} {label.ToLowerInvariant()}";
-        dialog.DefaultExt = "." + extension;
-        dialog.Filter = $"{label} (*.{extension})|*.{extension}|JSON (*.json)|*.json";
-        if (import) dialog.InitialDirectory = BundledScenarios.GetImportDirectory(preset);
-        if (dialog.ShowDialog(Application.Current.MainWindow) != true) return;
+        string operation = import ? "Import" : "Export";
+        string title = $"{operation} {label.ToLowerInvariant()}";
 
-        bool resume = _engine.IsRunning;
-        ControlsEnabled = false;
+        bool resume = false;
         try
         {
+            FileDialog dialog = import ? new OpenFileDialog() : new SaveFileDialog
+            {
+                FileName = preset ? "Aircraft" : $"Sector-{_engine.CurrentSeed}"
+            };
+            dialog.Title = title;
+            dialog.DefaultExt = "." + extension;
+            dialog.Filter = $"{label} (*.{extension})|*.{extension}|JSON (*.json)|*.json";
+            if (import) dialog.InitialDirectory = BundledScenarios.GetImportDirectory(preset);
+            if (dialog.ShowDialog(Application.Current.MainWindow) != true) return;
+
+            resume = _engine.IsRunning;
+            ControlsEnabled = false;
             if (resume) _engine.Pause();
             FlushLogs();
             string path = dialog.FileName;
@@ -66,7 +71,21 @@ public partial class MainViewModel
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException
             or InvalidDataException or SqliteException or ArgumentException or OverflowException)
         {
-            MessageBox.Show(Application.Current.MainWindow, ex.Message, dialog.Title, MessageBoxButton.OK, MessageBoxImage.Warning);
+            if (ex is SqliteException)
+                AppDiagnostics.Error(ex, "Scenario {Operation} failed in SQLite for {ScenarioType}", operation, extension);
+            else
+                AppDiagnostics.Warning(ex, "Scenario {Operation} failed for {ScenarioType}", operation, extension);
+
+            string message = ex switch
+            {
+                InvalidDataException => ex.Message,
+                JsonException => "Файл містить некоректний JSON або неповні дані сценарію.",
+                SqliteException => "Не вдалося записати сценарій у локальну базу даних.",
+                UnauthorizedAccessException => "Немає дозволу на доступ до файла або каталогу.",
+                IOException => "Не вдалося відкрити або записати файл. Перевірте вибраний шлях.",
+                _ => "Файл містить некоректний шлях або значення параметра сценарію."
+            };
+            MessageBox.Show(Application.Current.MainWindow, message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally
         {

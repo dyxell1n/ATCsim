@@ -44,8 +44,16 @@ public sealed record AircraftPreset(List<PresetAircraft> Aircraft)
 
             var model = entry.CustomModel ?? AircraftModelCatalog.CreateByIconType(entry.Model)
                 ?? throw new InvalidDataException($"Unknown aircraft model '{entry.Model}'.");
-            if (entry.X.HasValue != entry.Y.HasValue || entry.Speed < 0 || (!entry.X.HasValue && entry.Speed == 0))
+            if (entry.X.HasValue != entry.Y.HasValue ||
+                entry.X is { } startX && !ScenarioFile.Coordinate((double)startX) ||
+                entry.Y is { } startY && !ScenarioFile.Coordinate((double)startY) ||
+                entry.Speed is < 0 or > 100_000 || (!entry.X.HasValue && entry.Speed == 0))
                 throw new InvalidDataException($"Invalid starting position or speed for {entry.Callsign}.");
+            if (!ScenarioFile.Altitude(entry.Altitude) ||
+                entry.TargetAltitude is { } targetAltitude && !ScenarioFile.Altitude(targetAltitude) ||
+                entry.Heading is { } heading && !ScenarioFile.Heading(heading) ||
+                entry.AssignedHeading is { } assignedHeading && !ScenarioFile.Heading(assignedHeading))
+                throw new InvalidDataException($"Invalid altitude or heading for {entry.Callsign}.");
             var aircraft = new Aircraft { Id = traffic.Count + 1, Callsign = entry.Callsign,
                 Model = model, ModelId = model.Id, FuelRemaining = entry.Fuel };
             AircraftTracker.ScheduleDeparture(aircraft, departure, arrival, entry.TargetAltitude ?? entry.Altitude, entry.Speed);

@@ -62,6 +62,12 @@ public partial class EditAirportWindow : Window
 
         decimal.TryParse(CoordXBox.Text, out decimal x);
         decimal.TryParse(CoordYBox.Text, out decimal y);
+        if (x > 1_000_000_000 || y > 1_000_000_000)
+        {
+            MessageBox.Show(this, "Координати аеропорту мають бути не більшими за 1 000 000 000.",
+                "Параметри аеропорту", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
         int.TryParse(CapacityBox.Text, out int cap);
 
         EditedAirport.Name = name;
