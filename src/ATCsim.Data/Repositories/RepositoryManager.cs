@@ -2,6 +2,7 @@ using System.Text.Json;
 using ATCsim.Core.Entities;
 using ATCsim.Core.WorldGeneration;
 using ATCsim.Data.Context;
+using ATCsim.Data.Diagnostics;
 using Microsoft.Data.Sqlite;
 
 namespace ATCsim.Data.Repositories;
@@ -411,7 +412,10 @@ public class RepositoryManager
                             ac.TrailPoints = points.Where(p => p.X > 5.0 && p.Y > 5.0).ToList();
                         }
                     }
-                    catch { }
+                    catch (JsonException exception)
+                    {
+                        AppDiagnostics.Warning(exception, "Stored aircraft track could not be restored for {AircraftId}", ac.Id);
+                    }
                 }
 
                 if (ac.TrailPoints.Count == 0 && ac.Operations.Phase != FlightPhase.Landed)

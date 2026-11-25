@@ -131,6 +131,64 @@ public sealed class ScenarioFileTests : IDisposable
         Assert.Throws<InvalidDataException>(() => ScenarioFile.ReadPreset(PresetPath));
     }
 
+    [Fact]
+    public void FileTransferUsesSelectedPathAndRejectsDirectories()
+    {
+        string path = Path.Combine(_directory, ".", "traffic.json");
+        ScenarioFile.WritePreset(path, new([]));
+
+        Assert.Empty(ScenarioFile.ReadPreset(path).Aircraft);
+        Assert.Throws<InvalidDataException>(() => ScenarioFile.ReadPreset(_directory));
+        Assert.Throws<InvalidDataException>(() => ScenarioFile.WritePreset(_directory, new([])));
+        Assert.Equal(Path.Combine(_directory, "traffic.json"), Assert.Single(Directory.GetFiles(_directory)));
+    }
+
+    [Fact]
+    public void FailedExportPreservesExistingFileAndCleansUpTemporaryFile()
+    {
+        ScenarioFile.WritePreset(PresetPath, new([]));
+        var invalidAircraft = new PresetAircraft("INVALID", "B738", "UKBB", "UKLL", 12_000, 280, 500,
+            Heading: double.NaN);
+
+        Assert.Throws<ArgumentException>(() => ScenarioFile.WritePreset(PresetPath, new([invalidAircraft])));
+        Assert.Empty(ScenarioFile.ReadPreset(PresetPath).Aircraft);
+        Assert.Equal(PresetPath, Assert.Single(Directory.GetFiles(_directory)));
+    }
+
+    [Fact]
+    public void SaveRejectsInvalidRunwayLengthAndReversedWeatherLimits()
+    {
+        var map = new WorldGenerator().GenerateSector(12345);
+        var snapshot = new SessionSnapshotDto(map.Seed, WorldSector.CurrentTerrainVersion, DateTime.UnixEpoch,
+            1, map.Airports, map.WeatherZones, map.Aircraft);
+        var runway = map.Airports[0].Runways[0];
+        decimal length = runway.Length;
+        runway.Length = 0;
+        ScenarioFile.WriteSave(SavePath, snapshot);
+        Assert.Throws<InvalidDataException>(() => ScenarioFile.ReadSave(SavePath));
+
+        runway.Length = length;
+        var zone = map.WeatherZones[0];
+        zone.MinAltitude = 20_000;
+        zone.MaxAltitude = 10_000;
+        ScenarioFile.WriteSave(SavePath, snapshot);
+        Assert.Throws<InvalidDataException>(() => ScenarioFile.ReadSave(SavePath));
+    }
+
+    [Fact]
+    public void PresetRejectsInvalidParkedFlightFieldsBeforeScheduling()
+    {
+        var map = new WorldGenerator().GenerateSector(12345);
+        var aircraft = PresetAircraft.FromAircraft(map.Aircraft[0]);
+
+        Assert.Null(aircraft.X);
+        var invalidHeading = new AircraftPreset([aircraft with { Heading = 361 }]);
+        Assert.Throws<InvalidDataException>(() => invalidHeading.CreateTraffic(map.Airports));
+
+        var invalidAltitude = new AircraftPreset([aircraft with { Altitude = -1, TargetAltitude = 12_000 }]);
+        Assert.Throws<InvalidDataException>(() => invalidAltitude.CreateTraffic(map.Airports));
+    }
+
     public void Dispose()
     {
         SqliteConnection.ClearAllPools();

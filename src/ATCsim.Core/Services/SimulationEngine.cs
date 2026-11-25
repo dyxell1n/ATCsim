@@ -38,6 +38,7 @@ public class SimulationEngine : IDisposable
     public IReadOnlySet<int> ConflictingAircraft => _conflictingAircraft;
     public event Action? StateUpdated;
     public event Action<CollisionAlert>? ConflictDetected;
+    public event Action<Exception>? UpdateFailed;
 
     public SimulationEngine()
     {
@@ -197,6 +198,15 @@ public class SimulationEngine : IDisposable
                 AdvanceTraffic(TimeSpan.FromMilliseconds(_timer.Interval).TotalSeconds * TimeScale);
             }
             StateUpdated?.Invoke();
+        }
+        catch (Exception exception)
+        {
+            lock (_lock)
+            {
+                IsRunning = false;
+                _timer.Stop();
+            }
+            UpdateFailed?.Invoke(exception);
         }
         finally
         {

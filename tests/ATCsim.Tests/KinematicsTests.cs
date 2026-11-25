@@ -146,4 +146,19 @@ public class KinematicsTests
         engine.Pause();
         Assert.Equal(TimeSpan.FromMilliseconds(expectedMilliseconds), actual);
     }
+
+    [Fact]
+    public async Task LiveTickStopsAndReportsAnUnrecoverableUpdate()
+    {
+        using var engine = new SimulationEngine();
+        engine.LoadSector(new WorldSector(), DateTime.MaxValue);
+        var failure = new TaskCompletionSource<Exception>(TaskCreationOptions.RunContinuationsAsynchronously);
+        engine.UpdateFailed += exception => failure.TrySetResult(exception);
+
+        engine.Start();
+        var exception = await failure.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.IsType<ArgumentOutOfRangeException>(exception);
+        Assert.False(engine.IsRunning);
+    }
 }

@@ -1,3 +1,4 @@
+using ATCsim.Data.Diagnostics;
 using Microsoft.Data.Sqlite;
 
 namespace ATCsim.Data.Context;
@@ -46,7 +47,16 @@ public class DatabaseContext
     public SqliteConnection CreateConnection()
     {
         var connection = new SqliteConnection(ConnectionString);
-        connection.Open();
-        return connection;
+        try
+        {
+            connection.Open();
+            return connection;
+        }
+        catch (Exception exception)
+        {
+            connection.Dispose();
+            AppDiagnostics.Error(exception, "Opening the SQLite connection failed.");
+            throw;
+        }
     }
 }

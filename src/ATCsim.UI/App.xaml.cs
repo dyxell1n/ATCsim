@@ -3,6 +3,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Threading;
 using ATCsim.Core.Entities;
+using ATCsim.Data.Diagnostics;
 
 namespace ATCsim.UI;
 
@@ -11,10 +12,14 @@ namespace ATCsim.UI;
 /// </summary>
 public partial class App : Application
 {
+    private bool _shuttingDownAfterError;
+
     protected override async void OnStartup(StartupEventArgs e)
     {
-        base.OnStartup(e);
         DispatcherUnhandledException += OnDispatcherUnhandledException;
+        AppDiagnostics.Initialize();
+        AppDiagnostics.Information("ATCsim started.");
+        base.OnStartup(e);
 
         var args = e.Args;
         for (int i = 0; i < args.Length; i++)
@@ -39,6 +44,19 @@ public partial class App : Application
                 await RunScreenshotCaptureAsync(outputPath, waitSec, modalToOpen, selectFlight);
                 break;
             }
+        }
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        try
+        {
+            base.OnExit(e);
+        }
+        finally
+        {
+            AppDiagnostics.Information("ATCsim exited with code {ExitCode}.", e.ApplicationExitCode);
+            AppDiagnostics.Close();
         }
     }
 
@@ -129,12 +147,28 @@ public partial class App : Application
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        MessageBox.Show(
-            $"An unexpected error occurred:\n\n{e.Exception.Message}",
-            "ATCsim Error",
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
-
         e.Handled = true;
+        ReportFatalError(e.Exception, "WPF dispatcher");
+    }
+
+    internal void ReportFatalError(Exception exception, string operation)
+    {
+        if (_shuttingDownAfterError) return;
+        _shuttingDownAfterError = true;
+
+        try
+        {
+            AppDiagnostics.Error(exception, "Fatal error during {Operation}. ATCsim will close.", operation);
+            MessageBox.Show(
+                "ATCsim encountered an unexpected error and will close. For troubleshooting, check the diagnostic logs in " +
+                @"%LOCALAPPDATA%\ATCsim\Logs.",
+                "ATCsim Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+        finally
+        {
+            Shutdown(1);
+        }
     }
 }

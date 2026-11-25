@@ -31,11 +31,24 @@ public partial class AddAirportWindow : Window
 
         decimal.TryParse(CoordXBox.Text, out decimal x);
         decimal.TryParse(CoordYBox.Text, out decimal y);
+        if (x > 1_000_000_000 || y > 1_000_000_000)
+        {
+            MessageBox.Show(this, "Координати аеропорту мають бути не більшими за 1 000 000 000.",
+                "Параметри аеропорту", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
         int.TryParse(CapacityBox.Text, out int cap);
         if (cap <= 0) cap = 15;
 
         string rwyDes = string.IsNullOrWhiteSpace(RwyDesignatorBox.Text) ? "08" : RwyDesignatorBox.Text.Trim();
-        int.TryParse(RwyAngleBox.Text, out int angle);
+        int angle = 80;
+        if (!string.IsNullOrWhiteSpace(RwyAngleBox.Text) &&
+            (!int.TryParse(RwyAngleBox.Text, out angle) || angle is < 0 or > 360))
+        {
+            MessageBox.Show(this, "Вкажіть курс смуги від 0° до 360°.",
+                "Характеристики смуги", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
         decimal.TryParse(RwyLengthBox.Text, out decimal length);
         if (length <= 0) length = 2500m;
 
@@ -52,7 +65,7 @@ public partial class AddAirportWindow : Window
                 new Runway
                 {
                     Designator = rwyDes,
-                    Angle = angle > 0 ? angle : 80,
+                    Angle = angle,
                     Length = length,
                     IsAvailable = true
                 }
