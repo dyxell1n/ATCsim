@@ -73,6 +73,8 @@ dotnet test ATCsim.sln --configuration Release --no-build --verbosity normal
 
 Активний набір правил **ATCsim CI on main** для `main` вимагає успішного статусу `Build and test (Windows)` від GitHub Actions. Без успішної перевірки GitHub блокує злиття. Правило й джерело перевірки підтверджено через API репозиторію. [Правила гілки `main`](https://api.github.com/repos/dyxell1n/ATCsim/rules/branches/main), [набір правил №28061871](https://api.github.com/repos/dyxell1n/ATCsim/rulesets/28061871).
 
+Результати перевірки всіх змін лабораторних робіт доступні у вкладці **Checks** запиту на злиття до `main`. [Перевірки запиту №3](https://github.com/dyxell1n/ATCsim/pull/3/checks).
+
 ## Висновки
 
 GitHub Actions збирає й тестує ATCsim у конфігурації `Release`. Перший автоматичний запуск завершився успішно, а його завдання стало обов’язковою перевіркою для `main`. Локальна збірка зі змінами обох лабораторних робіт завершилася без попереджень і помилок, усі 75 тестів пройшли.

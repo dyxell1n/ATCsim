@@ -572,7 +572,7 @@ public partial class MainViewModel : ViewModelBase
     {
         var dispatcher = Application.Current?.Dispatcher;
         if (dispatcher == null || dispatcher.HasShutdownStarted || Interlocked.Exchange(ref _refreshQueued, 1) != 0) return;
-        dispatcher.InvokeAsync(() =>
+        dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() =>
         {
             Interlocked.Exchange(ref _refreshQueued, 0);
             _engine.ReadState(() =>
@@ -589,7 +589,7 @@ public partial class MainViewModel : ViewModelBase
                 }
             });
             FlushLogs();
-        }, System.Windows.Threading.DispatcherPriority.Background);
+        }));
     }
 
     private void FlushLogs()
